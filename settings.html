@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duckshow — Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .settings-container {
+            max-width: 800px;
+            margin: 120px auto 100px;
+            padding: 0 48px;
+        }
+        
+        .settings-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .settings-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            letter-spacing: 2px;
+            color: var(--white);
+        }
+
+        .settings-section {
+            background: var(--card2);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .section-label {
+            font-family: 'Space Mono', monospace;
+            color: var(--yellow);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .setting-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .setting-info p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+        .setting-action {
+            color: var(--teal);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        
+        .setting-action:hover {
+            color: var(--yellow);
+        }
+
+        /* Toggle Switch UI */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--yellow); }
+        input:checked + .slider:before { transform: translateX(26px); background-color: var(--black); }
+
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-box">
+            <span class="search-icon-label">🔍</span>
+            <input class="search-input" id="searchInput" placeholder="SEARCH TITLES..." autocomplete="off" />
+        </div>
+        <p class="search-hint">PRESS ESC TO CLOSE</p>
+        <div id="searchResults" style="max-height: 60vh; overflow-y: auto; width: 100%; max-width: 1200px; padding: 20px;"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-hero">
+                <div class="modal-hero-bg" id="modalBg"></div>
+                <span class="modal-hero-emoji" id="modalEmoji"></span>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <div class="modal-badges" id="modalBadges"></div>
+                <p class="modal-desc" id="modalDesc"></p>
+                <div class="modal-cast" id="modalCast"></div>
+                <div class="modal-actions" id="modalActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav id="navbar">
+        <a class="logo" href="index.html">🦆 DUCKSHOW</a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">Home</a>
+            <a href="movies.html" class="nav-item">Movies</a>
+            <a href="series.html" class="nav-item">Series</a>
+            <a href="anime.html" class="nav-item">Anime</a>
+            <a href="documentaries.html" class="nav-item">Documentaries</a>
+            <a href="new-and-hot.html" class="nav-item">New &amp; Hot</a>
+            <a href="my-list.html" class="nav-item">My List</a>
+        </div>
+        <div class="nav-right">
+            <a href="login.html" class="nav-avatar" style="text-decoration: none;" title="Sign In">DS</a>
+        </div>
+    </nav>
+
+    <div class="settings-container fade-s vis">
+        <div class="settings-header">
+            <h1 class="settings-title">Account Settings</h1>
+        </div>
+
+        <div class="settings-section">
+            <span class="section-label">Profile Details</span>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>Email Address</h4>
+                    <p id="dispEmail">Loading...</p>
+                </div>
+                <a href="#" class="setting-action" onclick="alert('Feature coming soon!')">Change Email</a>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>Password</h4>
+                    <p>••••••••</p>
+                </div>
+                <a href="#" class="setting-action" onclick="alert('Feature coming soon!')">Update Password</a>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>First Name</h4>
+                    <p id="dispName">Loading...</p>
+                </div>
+                <a href="#" class="setting-action" onclick="alert('Feature coming soon!')">Edit Name</a>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <span class="section-label">Plan & Billing</span>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4 id="dispPlanLevel">Duckshow Free (Ad-Supported)</h4>
+                    <p id="dispBillingDate">No active billing cycle.</p>
+                </div>
+                <a href="payment.html" class="setting-action" id="managePlanBtn">Upgrade Plan</a>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>Payment Method</h4>
+                    <p id="dispPayment">None on file</p>
+                </div>
+                <a href="payment.html" class="setting-action">Add Payment</a>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <span class="section-label">Preferences</span>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>Appearance Theme</h4>
+                    <p>Select your Duckshow viewing experience.</p>
+                </div>
+                <select id="themeSelect" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; cursor: pointer; outline: none; font-size: 0.95rem;">
+                    <option value="auto">Auto (Time-based)</option>
+                    <option value="dark">Dark Theme (Default)</option>
+                    <option value="light">Light Theme</option>
+                    <option value="special">Duckshow Special</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <div class="setting-info">
+                    <h4>Content Quality</h4>
+                    <p>Stream in 4K HDR when available.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <button style="background:var(--red); color:white; border:none; padding:12px 24px; border-radius:var(--radius); font-weight:bold; cursor:pointer;" onclick="deleteAccount()">Delete Account</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="fade-s vis">
+        <div class="footer-logo">🦆 DUCKSHOW</div>
+        <div class="footer-bottom">
+            <span>© 2025 Duckshow, Inc. All rights reserved. 🦆</span>
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const isAuth = localStorage.getItem('duckshow_auth');
+            if (isAuth !== 'true') {
+                window.location.replace('/login');
+                return;
+            }
+
+            // Display profile info
+            document.getElementById('dispEmail').textContent = localStorage.getItem('duckshow_user_email') || 'user@example.com';
+            document.getElementById('dispName').textContent  = localStorage.getItem('duckshow_user_name')  || 'Duck';
+
+            // ── Live Subscription Check from API ─────────────────────────
+            const userId = localStorage.getItem('duckshow_user_id');
+            if (userId) {
+                try {
+                    const res = await fetch(`/api/subscription/${userId}`);
+                    const sub = await res.json();
+                    if (sub.active) {
+                        // Sync latest subscription into localStorage
+                        localStorage.setItem('duckshow_subscription', sub.plan);
+                        localStorage.setItem('duckshow_billing_date', sub.nextBillingDate);
+                    }
+                } catch(e) {}
+            }
+
+            // Update Plan UI from (now synced) localStorage
+            const sub = localStorage.getItem('duckshow_subscription');
+            if (sub === 'premiere') {
+                document.getElementById('dispPlanLevel').textContent = 'Duckshow Premiere ✦';
+                document.getElementById('dispPlanLevel').style.color = 'var(--yellow)';
+                document.getElementById('dispBillingDate').textContent = `Next billing date: ${localStorage.getItem('duckshow_billing_date') || '—'}`;
+                document.getElementById('managePlanBtn').textContent = 'Manage Plan';
+                document.getElementById('managePlanBtn').href = '#';
+                document.getElementById('managePlanBtn').onclick = () => alert('Plan management portal coming soon.');
+                document.getElementById('dispPayment').textContent = 'Visa ending in •••• 4242';
+            }
+
+            // ── Theme Switcher ────────────────────────────────────────────
+            const themeSelect = document.getElementById('themeSelect');
+            themeSelect.value = localStorage.getItem('duckshow_theme') || 'auto';
+            themeSelect.addEventListener('change', (e) => {
+                const newTheme = e.target.value;
+                localStorage.setItem('duckshow_theme', newTheme);
+                applyTheme(newTheme);
+                showToast(`Theme: ${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)}`);
+            });
+        });
+
+        async function deleteAccount() {
+            if (!confirm('Are you absolutely sure you want to delete your Duckshow account? All your data will be permanently wiped.')) return;
+
+            const userId = localStorage.getItem('duckshow_user_id');
+            if (userId) {
+                try {
+                    await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                } catch(e) {}
+            }
+
+            // Wipe ALL user keys from localStorage
+            const keys = ['duckshow_auth','duckshow_user_id','duckshow_user_name','duckshow_user_email',
+                          'duckshow_user_age','duckshow_mylist','duckshow_subscription','duckshow_billing_date'];
+            keys.forEach(k => localStorage.removeItem(k));
+
+            alert('Your account has been successfully deleted. Goodbye! 🦆');
+            window.location.replace('/login');
+        }
+    </script>
+</body>
+</html>

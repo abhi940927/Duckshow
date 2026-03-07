@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Delivery Service</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+</head>
+<body>
+    
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-pepper-hot"></i> Spicy Food</h1>
+            <nav>
+                <ul>
+                    <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#menu"><i class="fas fa-utensils"></i> Menu</a></li>
+                    <li><a href="#about"><i class="fas fa-info-circle"></i> About Us</a></li>
+                    <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <marquee behavior="scroll" direction="left" scrollamount="5" style="background-color: papayawhip; color: black; padding: 10px;">
+        <h2 style="display:inline; margin:0 20px 0 0;"><strong>Fresh, Hot, and Fast - Order Your Meal Today!</strong></h2>
+        <span style="display:inline-block; margin-right:20px;"><strong>Buy 1 Get 1 Free</strong> (select items)</span>
+        <span style="display:inline-block; margin-right:20px;">Free delivery on orders over <strong>₹250</strong></span>
+        <span style="display:inline-block; margin-right:20px;">New: Weekend Thali Combo from <strong>₹129</strong></span>
+    </marquee>
+    
+
+    <!-- Home Section -->
+    <!-- Home Section (enhanced hero + promos + featured carousel) -->
+<section id="home" class="home-hero">
+  <div class="hero-overlay"></div>
+
+  <div class="home-inner container">
+    <div class="hero-left">
+      <!-- <div class="promo-pill">Free delivery on orders over <strong>₹250</strong></div>
+      <h1><i class="fas fa-motorcycle"></i> Delicious Food, Delivered Fast!</h1>
+      <p class="hero-lead"><i>Enjoy a wide variety of dishes delivered straight to your door. Fresh, hot, and fast!</i></p> -->
+
+      <!-- quick order + search -->
+      <div class="hero-actions">
+        <div class="search-quick">
+          <input id="home-search" type="search" placeholder="Search menu (e.g. Litti Chokha, Pizza)"/>
+          <button id="search-btn" class="btn"><i class="fas fa-search"></i> Find</button>
+        </div>
+
+        <div class="quick-order">
+          <button class="btn quick-btn" data-item="Litti Chokha">Quick order: Litti</button>
+          <button class="btn quick-btn" data-item="Pizza">Quick order: Pizza</button>
+        </div>
+      </div>
+
+      <!-- hero CTAs -->
+      <div class="hero-ctas">
+        <a href="#menu" class="btn primary-cta"><i class="fas fa-shopping-cart"></i> Order Now</a>
+        <a href="#promo-video" class="btn secondary-cta"><i class="fas fa-video"></i> Watch Promo</a>
+      </div>
+
+      <!-- trust badges / microcopy -->
+      <div class="trust-row">
+        <div class="trust"><i class="fas fa-star"></i> 4.8 ★ | <strong>250+</strong> 5★ reviews</div>
+        <div class="trust"><i class="fas fa-shield-alt"></i> Hygiene Checked</div>
+        <div class="trust"><i class="fas fa-stopwatch"></i> 30–45 min avg</div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <!-- rotating promo cards / featured items -->
+      <div class="featured-wrap">
+        <div class="featured-header">
+          <h3>Featured today</h3>
+          <button id="feat-prev" class="feat-nav">&lt;</button>
+          <button id="feat-next" class="feat-nav">&gt;</button>
+        </div>
+        <div class="featured-track">
+          <!-- card 1 -->
+          <div class="feat-card" data-price="60" data-name="Litti Chokha">
+            <img src="litti.jpeg" alt="Litti Chokha">
+            <div class="feat-info">
+              <strong>🥘 Litti Chokha</strong>
+              <span>Traditional Bihari favourite</span>
+              <div class="feat-price">₹60</div>
+            </div>
+          </div>
+          <!-- card 2 -->
+          <div class="feat-card" data-price="80" data-name="Pizza">
+            <img src="pizza.jpeg" alt="Pizza">
+            <div class="feat-info">
+              <strong>🍕 Pizza</strong>
+              <span>Fresh & cheesy</span>
+              <div class="feat-price">₹80</div>
+            </div>
+          </div>
+          <!-- card 3 -->
+          <div class="feat-card" data-price="40" data-name="Momos">
+            <img src="momos.jpeg" alt="Momos">
+            <div class="feat-info">
+              <strong>🥟 Momos</strong>
+              <span>Steamed / fried</span>
+              <div class="feat-price">₹40</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured-actions">
+          <button id="feat-add" class="btn">Add Featured to Cart</button>
+        </div>
+      </div>
+
+      <!-- promo badge -->
+      <div class="app-promo">
+        <div class="badge">Today: <strong>Buy 1 Get 1</strong> (select items)</div>
+        <img src="food-background.jpg" alt="hero food" class="hero-image" />
+      </div>
+    </div>
+  </div>
+
+  <!-- scroll hint -->
+  <a href="#menu" class="scroll-down" aria-label="Scroll to menu"><i class="fas fa-angle-down"></i></a>
+</section>
+
+
+    <!-- Menu Section -->
+    <section id="menu">
+        <h2>🍽️ Our Menu</h2>
+        <div class="menu-container">
+            <div class="menu-item" data-price="60">
+                <h3>🥘 Litti Chokha</h3>
+                <img src="litti.jpeg" alt="Litti Chokha Image" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
+                <p>Traditional Bihari dish served with roasted litti and mashed chokha.</p>
+                <button class="add-to-cart">Add to Cart - ₹60</button>
+            </div>
+            <div class="menu-item" data-price="80">
+                <h3>🍕 Pizza</h3>
+                <img src="pizza.jpeg" alt="Pizza" class="food-image">
+                <p>Hot and cheesy with fresh toppings.</p>
+                <button class="add-to-cart">Add to Cart - ₹80</button>
+            </div>
+            <div class="menu-item" data-price="50">
+                <h3>🍔 Burgers</h3>
+                <img src="Burger.jpeg" alt="Burgers" class="food-image">
+                <p>Juicy burgers with a variety of flavors.</p>
+                <button class="add-to-cart">Add to Cart - ₹50</button>
+            </div>
+            <div class="menu-item" data-price="70">
+                <h3>🌯 Chicken Roll</h3>
+                <img src="chiken_roll.jpeg" alt="Chicken Roll Image" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
+                <p>Spicy and juicy chicken wrapped in a soft roll, perfect for a quick bite.</p>
+                <button class="add-to-cart">Add to Cart - ₹70</button>
+            </div>            
+            <div class="menu-item" data-price="70">
+                <h3>🍝 Pasta</h3>
+                <img src="pasta.jpeg" alt="Pasta" class="food-image">
+                <p>Delicious pasta with rich sauces.</p>
+                <button class="add-to-cart">Add to Cart - ₹70</button>
+            </div>
+            <div class="menu-item" data-price="20">
+                <h3>🥟 Samosa</h3>
+                <img src="samosa.jpeg" alt="Samosa Image" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
+                <p>Classic Indian snack filled with spiced potatoes and peas.</p>
+                <button class="add-to-cart">Add to Cart - ₹20</button>
+            </div>
+            <div class="menu-item" data-price="100">
+                <h3>🍣 Sushi</h3>
+                <img src="shushi2.jfif" alt="Sushi" class="food-image">
+                <p>Fresh and authentic Japanese sushi.</p>
+                <button class="add-to-cart">Add to Cart - ₹100</button>
+            </div>
+            <div class="menu-item" data-price="40">
+                <h3>🥟 Momos</h3>
+                <img src="momos.jpeg " alt="Momos" class="food-image">
+                <p>Steamed or fried dumplings with savory fillings.</p>
+                <button class="add-to-cart">Add to Cart - ₹40</button>
+            </div>
+            <div class="menu-item" data-price="60">
+                <h3>🍜 Ramen</h3>
+                <img src="Ramen_225x225.jpeg" alt="Ramen" class="food-image">
+                <p>Savory broth with fresh noodles and vegetables.</p>
+                <button class="add-to-cart">Add to Cart - ₹60</button>
+            </div>
+            <div class="menu-item" data-price="50">
+                <h3>🥗 Salad</h3>
+                <img src="salad1.jfif" alt="Salad" class="food-image">
+                <p>Crisp, healthy, and refreshing options.</p>
+                <button class="add-to-cart">Add to Cart - ₹50</button>
+            </div>
+            <div class="menu-item" data-price="30">
+                <h3>🍟 Fries</h3>
+                <img src="fries.jfif" alt="Fries" class="food-image">
+                <p>Golden and crispy french fries.</p>
+                <button class="add-to-cart">Add to Cart - ₹30</button>
+            </div>
+            <div class="menu-item" data-price="150">
+                <h3>🍛 Indian Thali</h3>
+                <img src="thali2.jfif" alt="Indian Thali Image" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
+                <p>A complete meal with a variety of dishes served on one plate.</p>
+                <button class="add-to-cart">Add to Cart - ₹150</button>
+            </div>
+            <div class="menu-item" data-price="120">
+                <h3>🧀 Paneer Butter Masala with Naan</h3>
+                <img src="panner3.jfif" alt="Paneer Butter Masala Image" style="width: 100%; border-radius: 5px; margin-bottom: 10px;">
+                <p>Rich and creamy paneer curry served with fluffy naan.</p>
+                <button class="add-to-cart">Add to Cart - ₹120</button>
+            </div>            
+            <div class="menu-item" data-price="40">
+                <h3>🍩 Desserts</h3>
+                <img src="desserts.jfif" alt="Desserts" class="food-image">
+                <p>Sweet treats to finish your meal.</p>
+                <button class="add-to-cart">Add to Cart - ₹40</button>
+            </div>
+            <div class="menu-item" data-price="20">
+                <h3>🥤 Beverages</h3>
+                <img src="drink2.jpg" alt="Beverages" class="food-image">
+                <p>A variety of cold drinks to quench your thirst.</p>
+                <button class="add-to-cart">Add to Cart - ₹20</button>
+            </div>
+
+        </div>
+        <div id="cart-summary">
+            <h3>Cart Summary</h3>
+            <p>Total: ₹<span id="total-price">0</span></p>
+            <button id="checkout">Checkout</button>
+        </div>
+    </section>
+
+    
+    
+    <!-- About Us Section -->
+    <!-- About Us Section (expanded + interactive) -->
+<section id="about" class="about-section">
+  <div class="about-inner container">
+    <div class="about-header">
+      <h2><i class="fas fa-users"></i> About Us</h2>
+      <p class="lead">
+        <span class="short-text">
+          <i class="fas fa-hand-holding-heart"></i> SpicyFood brings your favorite dishes from local kitchens to your doorstep — fast, fresh, and with love.
+        </span>
+        <span class="more-text" style="display:none;">
+          We partner with trusted cooks and restaurants, focus on hygiene and taste consistency, and use smart delivery logistics to make sure every meal arrives hot and satisfying. From street snacks to wholesome thalis, we celebrate flavors from every region while focusing on sustainability and community support.
+        </span>
+        <button class="read-more-btn" aria-expanded="false">Read more</button>
+      </p>
+    </div>
+
+    <!-- Mission / Vision / Values -->
+    <div class="about-grid">
+      <div class="about-card">
+        <h3><i class="fas fa-bullseye"></i> Our Mission</h3>
+        <p>Deliver delicious meals quickly while supporting local food businesses and ensuring quality and safety.</p>
+      </div>
+      <div class="about-card">
+        <h3><i class="fas fa-eye"></i> Our Vision</h3>
+        <p>Be the most-loved local food delivery brand known for flavor, trust, and community impact.</p>
+      </div>
+      <div class="about-card">
+        <h3><i class="fas fa-heart"></i> Our Values</h3>
+        <ul class="values-list">
+          <li>Quality & Taste</li>
+          <li>Speed & Reliability</li>
+          <li>Community Support</li>
+          <li>Sustainability</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Quick stats / counters -->
+    <div class="stats-row">
+      <div class="stat">
+        <h4 data-target="1200">0</h4>
+        <p>Orders Served</p>
+      </div>
+      <div class="stat">
+        <h4 data-target="85">0</h4>
+        <p>Partner Kitchens</p>
+      </div>
+      <div class="stat">
+        <h4 data-target="98">0</h4>
+        <p>% On-time</p>
+      </div>
+      <div class="stat">
+        <h4 data-target="250">0</h4>
+        <p>5★ Reviews</p>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <div class="team-section">
+      <h3>Meet the Team</h3>
+      <div class="team-grid">
+        <div class="team-card">
+          <img src="Abhinav Singh.jpeg" alt="Team member 1" style="width:150px; height:150px; object-fit:cover; border-radius:50%; margin-bottom:8px;">
+          <h4>Raju Kumar</h4>
+          <p>Co-founder & Operations</p>
+        </div>
+        <div class="team-card">
+          <img src="Raju.jpeg" alt="Team member 2" style="width:150px; height:150px; object-fit:cover; border-radius:50%; margin-bottom:8px;">
+          <h4>Sonali</h4>
+          <p>Partnerships & Nutrition Expert</p>
+        </div>
+        <div class="team-card">
+          <img src="himmm.jpeg" alt="Team member 3" style="width:150px; height:150px; object-fit:cover; border-radius:50%; margin-bottom:8px;">
+          <h4>Himanshu Saini</h4>
+          <p>Head Chef</p>
+        </div>
+        <div class="team-card">
+          <img src="Nikii.jpeg" alt="Team member 3" style="width:150px; height:150px; object-fit:cover; border-radius:50%; margin-bottom:8px;">
+          <h4>Nikhil Pandey</h4>
+          <p>Nutrition & Quality Expert</p>
+        </div>
+        <div class="team-card">
+          <img src="Ashiiii.jpeg" alt="Team member 3" style="width:150px; height:150px; object-fit:cover; border-radius:50%; margin-bottom:8px;">
+          <h4>Ashish Singh</h4>
+          <p>Technical Support</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Testimonials (simple slider) -->
+    <div class="testimonials">
+      <h3>What Customers Say</h3>
+      <div class="testimonial-slider">
+        <button class="t-prev" aria-label="previous testimonial">&lt;</button>
+        <div class="t-track">
+          <div class="testimonial active">
+            <p>"Litti Chokha was delicious and arrived piping hot — best I've had!"</p>
+            <strong>- Priya</strong>
+          </div>
+          <div class="testimonial">
+            <p>"Fast delivery, friendly rider, and consistent taste. Highly recommended."</p>
+            <strong>- Rahul</strong>
+          </div>
+          <div class="testimonial">
+            <p>"Great variety and pocket-friendly. The thali is my weekend go-to."</p>
+            <strong>- Kavita</strong>
+          </div>
+        </div>
+        <button class="t-next" aria-label="next testimonial">&gt;</button>
+      </div>
+    </div>
+
+    <!-- FAQ accordion -->
+    <div class="faq-section">
+      <h3>Frequently Asked Questions</h3>
+      <div class="faq">
+        <button class="faq-question">How long does delivery usually take?</button>
+        <div class="faq-answer">
+          <p>Delivery typically takes 25–45 minutes depending on distance and traffic. We show an estimated time when you checkout.</p>
+        </div>
+
+        <button class="faq-question">Do you have contactless delivery?</button>
+        <div class="faq-answer">
+          <p>Yes — choose the contactless delivery option at checkout and the rider will drop the order at your door.</p>
+        </div>
+
+        <button class="faq-question">Can I order for large groups or events?</button>
+        <div class="faq-answer">
+          <p>Absolutely. For large orders please contact us via the Contact form or email at support@spicyfood.example for bulk catering requests.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="newsletter">
+      <h3>Stay Updated</h3>
+      <p>Get offers and new menu items — delivered to your inbox.</p>
+      <form id="newsletter-form" action="#" onsubmit="event.preventDefault(); subscribeNewsletter();">
+        <input type="email" id="newsletter-email" placeholder="Enter your email" required>
+        <button type="submit" class="btn">Subscribe</button>
+      </form>
+      <p id="newsletter-msg" aria-live="polite" style="margin-top:8px;"></p>
+    </div>
+  </div>
+</section>
+
+    <!-- Video Section -->
+    <section id="promo-video">
+        <h2><i class="fas fa-video"></i> Watch Our Promo Video</h2>
+        <div class="video-container">
+            <video controls width="600">
+                <source src="Spicy food.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <p>Experience the taste of our dishes through our promotional video!</p>
+    </section>
+    <!-- Reference Button Section -->
+    <section id="reference">
+        <h2><i class="fas fa-book"></i> Reference Page</h2>
+        <p>Learn more about our food delivery process and quality standards.</p>
+        <!-- Button styled as link to open reference page -->
+        <a href="reference-page.html" class="btn" target="_blank">
+  <i class="fas fa-arrow-right"></i> Visit Reference Page
+</a>
+
+    </section>
+
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <h2><i class="fas fa-envelope-open-text"></i> Contact Us</h2>
+        <form action="#">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required></textarea>
+            
+            <button type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 FoodFast. All rights reserved.</p>
+        <div class="social-icons">
+            <a href="https://x.com/ABHINAV78339768" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.instagram.com/abhi_sanatani22/profilecard/?igsh=dTRmaTN1OWtyd2Vv" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/abhinav-singh-124791322?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank"><i class="fab fa-linkedin"></i></a>
+        </div>
+    </footer>
+
+    <script>
+  // Read more toggle
+  document.querySelectorAll('.read-more-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      const more = this.parentElement.querySelector('.more-text');
+      const expanded = this.getAttribute('aria-expanded') === 'true';
+      if (!expanded) {
+        more.style.display = 'inline';
+        this.textContent = 'Show less';
+        this.setAttribute('aria-expanded','true');
+      } else {
+        more.style.display = 'none';
+        this.textContent = 'Read more';
+        this.setAttribute('aria-expanded','false');
+      }
+    });
+  });
+
+  // Counters - animate when in view
+  const counters = document.querySelectorAll('.stat h4');
+  let countersRun = false;
+  function runCounters() {
+    if (countersRun) return;
+    const rect = document.querySelector('.stats-row').getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom >= 0) {
+      counters.forEach(counter => {
+        const target = +counter.getAttribute('data-target');
+        const step = Math.max(1, Math.floor(target / 120));
+        let current = 0;
+        const interval = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            counter.textContent = target;
+            clearInterval(interval);
+          } else {
+            counter.textContent = current;
+          }
+        }, 12);
+      });
+      countersRun = true;
+    }
+  }
+  window.addEventListener('scroll', runCounters);
+  window.addEventListener('load', runCounters);
+
+  // Testimonials slider (simple)
+  (function(){
+    const track = document.querySelector('.t-track');
+    const slides = Array.from(track.querySelectorAll('.testimonial'));
+    let idx = 0;
+    function show(i){
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+    }
+    document.querySelector('.t-prev').addEventListener('click', ()=>{
+      idx = (idx - 1 + slides.length) % slides.length;
+      show(idx);
+    });
+    document.querySelector('.t-next').addEventListener('click', ()=>{
+      idx = (idx + 1) % slides.length;
+      show(idx);
+    });
+    // auto-advance every 5s
+    setInterval(()=>{ idx = (idx + 1) % slides.length; show(idx); }, 5000);
+  })();
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-question').forEach(q=>{
+    q.addEventListener('click', function(){
+      const open = this.classList.contains('open');
+      // close all
+      document.querySelectorAll('.faq-question').forEach(b=>{
+        b.classList.remove('open');
+        b.nextElementSibling.style.display = 'none';
+      });
+      if (!open) {
+        this.classList.add('open');
+        this.nextElementSibling.style.display = 'block';
+      }
+    });
+  });
+
+  // Newsletter (simple feedback)
+  function subscribeNewsletter(){
+    const emailInput = document.getElementById('newsletter-email');
+    const msg = document.getElementById('newsletter-msg');
+    const email = emailInput.value.trim();
+    if (!email) { msg.textContent = 'Please enter a valid email.'; return; }
+    // (Here you'd normally send to server)
+    msg.textContent = 'Thanks! You are subscribed.';
+    emailInput.value = '';
+    setTimeout(()=> msg.textContent = '', 4000);
+  }
+  window.subscribeNewsletter = subscribeNewsletter;
+
+/* ---------- Home interactions: search, featured carousel, quick order ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // Fix malformed home paragraph just in case
+  const homeP = document.querySelector('#home .hero-lead');
+  if (homeP && homeP.innerHTML.includes('iEnjoy')) {
+    homeP.innerHTML = '<i>Enjoy a wide variety of dishes delivered straight to your door. Fresh, hot, and fast!</i>';
+  }
+
+  // Search button: focus menu search behavior (integrates with menu search if present)
+  const searchBtn = document.getElementById('search-btn');
+  const homeSearch = document.getElementById('home-search');
+  searchBtn?.addEventListener('click', () => {
+    const q = (homeSearch.value || '').trim();
+    if (!q) { 
+      // small pulse
+      homeSearch.style.boxShadow = '0 0 0 3px rgba(255,99,71,0.12)';
+      setTimeout(()=> homeSearch.style.boxShadow = '', 600);
+      return;
+    }
+    // if there is a menu search input on page, copy search and scroll to menu
+    const menuSearch = document.getElementById('menu-search');
+    if (menuSearch) {
+      menuSearch.value = q;
+      menuSearch.dispatchEvent(new Event('input'));
+      document.querySelector('#menu')?.scrollIntoView({behavior:'smooth'});
+      return;
+    }
+    // else scroll to menu and highlight query (quick UX)
+    document.querySelector('#menu')?.scrollIntoView({behavior:'smooth'});
+  });
+
+  // Quick order buttons: try to add to cart if cart system present
+  document.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const itemName = btn.dataset.item;
+      // If your cart script exposes a function to add by name, call it
+      if (window.addToCartByName) {
+        window.addToCartByName(itemName);
+      } else {
+        // fallback: find a menu-item and click its add-to-cart button
+        const items = Array.from(document.querySelectorAll('.menu-item'));
+        const target = items.find(it => (it.querySelector('h3')?.innerText || '').toLowerCase().includes(itemName.toLowerCase()));
+        if (target) {
+          const addBtn = target.querySelector('.add-to-cart');
+          addBtn?.click();
+          // scroll to menu to show action
+          target.scrollIntoView({behavior:'smooth', block:'center'});
+        } else {
+          alert(itemName + ' is not found on the menu yet.');
+        }
+      }
+    });
+  });
+
+  // Featured carousel simple navigation
+  const track = document.querySelector('.featured-track');
+  const cards = track ? Array.from(track.children) : [];
+  let featIndex = 0;
+  function showFeatured(i){
+    if (!track) return;
+    // scroll the featured track to the card
+    const card = cards[i];
+    if (card) card.scrollIntoView({behavior:'smooth', inline:'center'});
+  }
+  document.getElementById('feat-prev')?.addEventListener('click', ()=>{
+    featIndex = (featIndex - 1 + cards.length) % cards.length;
+    showFeatured(featIndex);
+  });
+  document.getElementById('feat-next')?.addEventListener('click', ()=>{
+    featIndex = (featIndex + 1) % cards.length;
+    showFeatured(featIndex);
+  });
+  // default show first
+  showFeatured(0);
+
+  // Add featured item to cart (adds currently visible center card)
+  document.getElementById('feat-add')?.addEventListener('click', ()=> {
+    // find card near left of container center
+    if (!track) return;
+    // find card with minimal distance to center
+    const trackRect = track.getBoundingClientRect();
+    let closest = null;
+    let minDist = Infinity;
+    cards.forEach(c => {
+      const r = c.getBoundingClientRect();
+      const center = (r.left + r.right) / 2;
+      const dist = Math.abs(center - (trackRect.left + trackRect.right)/2);
+      if (dist < minDist) { minDist = dist; closest = c; }
+    });
+    if (!closest) return;
+    const name = closest.dataset.name || (closest.querySelector('.feat-info strong')?.innerText || 'Item');
+    // integrate with cart: try exposed add function
+    if (window.addToCartByName) {
+      window.addToCartByName(name);
+    } else {
+      // fallback to clicking matching add button in menu
+      const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+      const match = menuItems.find(mi => (mi.querySelector('h3')?.innerText || '').toLowerCase().includes(name.toLowerCase()));
+      if (match) {
+        const btn = match.querySelector('.add-to-cart');
+        btn?.click();
+      } else {
+        alert(name + ' not found in menu.');
+      }
+    }
+  });
+
+  // small reveal animations for hero elements
+  const revealEls = document.querySelectorAll('.home-hero .hero-left > *, .home-hero .hero-right > *');
+  revealEls.forEach((el, idx) => {
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(8px)';
+    setTimeout(()=> {
+      el.style.transition = 'opacity 500ms ease, transform 500ms ease';
+      el.style.opacity = 1;
+      el.style.transform = 'none';
+    }, 140 * idx);
+  });
+
+  // scroll-down hint smooth scroll
+  document.querySelectorAll('.scroll-down').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      const dest = document.querySelector(href);
+      if (dest) dest.scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+});
+// inside your cart script (expose helper)
+window.addToCartByName = function(name){
+  const items = Array.from(document.querySelectorAll('.menu-item'));
+  const match = items.find(it => (it.querySelector('h3')?.innerText || '').toLowerCase().includes(name.toLowerCase()));
+  if (!match) return alert(name + ' not found in menu.');
+  match.querySelector('.add-to-cart')?.click();
+}
+
+</script>
+</body>
+</html>

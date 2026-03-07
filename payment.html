@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duckshow — Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .checkout-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--black);
+            padding: 80px 20px;
+        }
+
+        .checkout-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .checkout-col {
+            flex: 1;
+            background: var(--card2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 40px;
+        }
+
+        .summary-col {
+            flex: 0.6;
+            background: linear-gradient(135deg, rgba(255, 214, 0, 0.05), transparent);
+            border: 1px solid rgba(255, 214, 0, 0.15);
+        }
+
+        h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+            color: var(--white);
+        }
+        
+        .summary-col h2 {
+            color: var(--yellow);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 16px; margin-bottom: 20px; }
+        .form-row .form-group { flex: 1; margin-bottom: 0; }
+
+        .form-label {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--yellow);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .plan-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .plan-item:last-child { border-bottom: none; }
+        
+        .plan-title { font-weight: 700; font-size: 1.1rem; }
+        .plan-desc { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+        .plan-price { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--white); }
+        .plan-total { font-size: 1.5rem; color: var(--yellow); }
+
+        .btn-pay {
+            width: 100%;
+            background: var(--yellow);
+            color: var(--black);
+            border: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 214, 0, 0.3);
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            color: var(--teal);
+            font-size: 0.8rem;
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.3);
+            border-radius: 50%;
+            border-top-color: var(--black);
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 7, 7, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        @keyframes bounceIn {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .success-overlay h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: var(--yellow);
+            margin-bottom: 16px;
+        }
+
+        .success-overlay p {
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-bottom: 32px;
+        }
+
+        .btn-home {
+            background: var(--white);
+            color: var(--black);
+            padding: 12px 32px;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: var(--radius);
+        }
+
+        nav { display: none; } /* Hide global nav */
+
+        @media (max-width: 768px) {
+            .checkout-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+
+    <div class="checkout-wrapper">
+        <a href="settings.html" style="position: absolute; top: 40px; left: 48px; color: var(--muted); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.9rem;">← BACK TO SETTINGS</a>
+        <div class="checkout-container fade-s vis">
+            
+            <!-- Payment Details Form -->
+            <div class="checkout-col">
+                <h2>Payment Details</h2>
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label class="form-label">Name on Card</label>
+                        <input type="text" class="form-input" id="cardName" required placeholder="Duck">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-input" maxlength="19" required placeholder="0000 0000 0000 0000" id="cardNumber">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Expiry (MM/YY)</label>
+                            <input type="text" class="form-input" maxlength="5" required placeholder="12/26">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVC</label>
+                            <input type="password" class="form-input" maxlength="4" required placeholder="123">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Billing Zip Code</label>
+                        <input type="text" class="form-input" required placeholder="90210">
+                    </div>
+
+                    <button type="submit" class="btn-pay" id="payBtn">
+                        <span id="payText">Confirm Payment</span>
+                        <div class="spinner" id="paySpinner"></div>
+                    </button>
+
+                    <div class="secure-badge">
+                        🔒 Secure 256-bit Encryption
+                    </div>
+                </form>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="checkout-col summary-col">
+                <h2>Order Summary</h2>
+                
+                <div class="plan-item">
+                    <div>
+                        <div class="plan-title">Duckshow Premiere (Monthly)</div>
+                        <div class="plan-desc">4K HDR Streaming, Ad-Free, Up to 4 Devices</div>
+                    </div>
+                    <div class="plan-price">$19.99</div>
+                </div>
+                
+                <div class="plan-item">
+                    <div>
+                        <div class="plan-title">Taxes & Fees</div>
+                    </div>
+                    <div class="plan-price">$1.60</div>
+                </div>
+
+                <div class="plan-item" style="border-top: 2px solid rgba(255,255,255,0.2); margin-top: 16px;">
+                    <div>
+                        <div class="plan-title" style="font-size: 1.3rem;">Total Due Today</div>
+                    </div>
+                    <div class="plan-price plan-total">$21.59</div>
+                </div>
+
+                <div style="margin-top: 32px; font-size: 0.8rem; color: var(--muted); line-height: 1.6;">
+                    By confirming your subscription, you allow Duckshow to charge your card for this payment and future payments in accordance with our terms. You can always cancel your subscription via your Account Settings.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-icon">🎉</div>
+        <h1>Payment Successful!</h1>
+        <p>Your Duckshow Premiere subscription is now active.</p>
+        <a href="index.html" class="btn-home">START WATCHING</a>
+    </div>
+
+    <script src="index.js"></script>
+    <script>
+        // Pre-fill name if logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const name = localStorage.getItem('duckshow_user_name');
+            if (name) {
+                document.getElementById('cardName').value = name;
+            }
+        });
+
+        // Simple Card Number Formatting
+        document.getElementById('cardNumber').addEventListener('input', function (e) {
+            e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+        });
+
+        // Mock Payment Processing
+        document.getElementById('paymentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('payBtn');
+            const txt = document.getElementById('payText');
+            const spin = document.getElementById('paySpinner');
+            
+            // UI Loading state
+            btn.style.pointerEvents = 'none';
+            txt.textContent = 'Processing...';
+            spin.style.display = 'block';
+
+            // Simulate network request to payment gateway
+            setTimeout(async () => {
+                // Success
+                document.getElementById('successOverlay').classList.add('active');
+                
+                // Save subscription state to localStorage
+                const nextDate = new Date(new Date().setMonth(new Date().getMonth() + 1))
+                    .toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                localStorage.setItem('duckshow_subscription', 'premiere');
+                localStorage.setItem('duckshow_billing_date', nextDate);
+                
+                // Also sync with the Node.js API if server is running
+                const userId = localStorage.getItem('duckshow_user_id');
+                if (userId) {
+                    try {
+                        await fetch('/api/subscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, plan: 'premiere' })
+                        });
+                    } catch(e) {} // Silently fail if server isn't running
+                }
+                
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

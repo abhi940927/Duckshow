@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duckshow — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at 50% 50%, #1a1200, #070707);
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 214, 0, 0.15);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 480px;
+            padding: 48px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .login-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.8rem;
+            color: var(--yellow);
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 36px;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--yellow);
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 0 2px rgba(255, 214, 0, 0.1);
+        }
+
+        .form-checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .form-checkbox {
+            margin-top: 4px;
+            accent-color: var(--yellow);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .form-checkbox-label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .form-checkbox-label a {
+            color: var(--yellow);
+            text-decoration: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: var(--yellow);
+            color: var(--black);
+            border: none;
+            padding: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 214, 0, 0.3);
+        }
+
+        .error-message {
+            color: var(--red);
+            background: rgba(229, 57, 53, 0.1);
+            border: 1px solid rgba(229, 57, 53, 0.3);
+            padding: 12px;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        nav { display: none; } /* Hide the global navbar if it bleeds in */
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <a href="index.html" class="login-logo">🦆 DUCKSHOW</a>
+            <p class="login-subtitle">Sign in or create an account</p>
+            
+            <div class="error-message" id="errorBox"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" id="firstName" class="form-input" required placeholder="Duck">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" required placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" required placeholder="••••••••">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" id="dob" class="form-input" required>
+                </div>
+
+                <div class="form-checkbox-wrapper">
+                    <input type="checkbox" id="terms" class="form-checkbox" required>
+                    <label for="terms" class="form-checkbox-label">
+                        I confirm my details and agree to the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.
+                    </label>
+                </div>
+
+                <button type="submit" class="login-btn">ENTER DUCKSHOW</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorBox = document.getElementById('errorBox');
+            errorBox.style.display = 'none';
+
+            const dobInput = document.getElementById('dob').value;
+            if (!dobInput) {
+                errorBox.textContent = 'Please enter your Date of Birth.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            // Age Calculation
+            const dob = new Date(dobInput);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+
+            if (age < 9) {
+                errorBox.textContent = 'Sorry, you must be at least 9 years old to create an account on Duckshow.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const btn = document.querySelector('.login-btn');
+            btn.textContent = 'Creating Account...';
+            btn.style.pointerEvents = 'none';
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                // First, try to register via the API
+                const registerRes = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: firstName, email, password, age })
+                });
+
+                let user;
+
+                if (registerRes.status === 409) {
+                    // Already exists — try to login instead
+                    const loginRes = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (!loginRes.ok) {
+                        errorBox.textContent = loginData.error || 'Incorrect password for this account.';
+                        errorBox.style.display = 'block';
+                        btn.textContent = 'ENTER DUCKSHOW';
+                        btn.style.pointerEvents = '';
+                        return;
+                    }
+                    user = loginData.user;
+                } else if (!registerRes.ok) {
+                    const data = await registerRes.json();
+                    errorBox.textContent = data.error || 'Registration failed.';
+                    errorBox.style.display = 'block';
+                    btn.textContent = 'ENTER DUCKSHOW';
+                    btn.style.pointerEvents = '';
+                    return;
+                } else {
+                    const data = await registerRes.json();
+                    user = data.user;
+                }
+
+                // ── Persist core session ──────────────────────────────────
+                localStorage.setItem('duckshow_auth', 'true');
+                localStorage.setItem('duckshow_user_id', user.id);
+                localStorage.setItem('duckshow_user_name', user.name);
+                localStorage.setItem('duckshow_user_email', user.email);
+                localStorage.setItem('duckshow_user_age', user.age || age);
+
+                // ── Restore this user's data from the server ──────────────
+                // 1. My List
+                try {
+                    const mlRes = await fetch(`/api/mylist/${user.id}`);
+                    const mlData = await mlRes.json();
+                    if (mlData.mylist) {
+                        localStorage.setItem('duckshow_mylist', JSON.stringify(mlData.mylist));
+                    }
+                } catch(e) {}
+
+                // 2. Subscription
+                try {
+                    const subRes = await fetch(`/api/subscription/${user.id}`);
+                    const subData = await subRes.json();
+                    if (subData.active) {
+                        localStorage.setItem('duckshow_subscription', subData.plan);
+                        localStorage.setItem('duckshow_billing_date', subData.nextBillingDate);
+                    } else {
+                        // Make sure no stale subscription data from previous user
+                        localStorage.removeItem('duckshow_subscription');
+                        localStorage.removeItem('duckshow_billing_date');
+                    }
+                } catch(e) {}
+
+                btn.textContent = 'Authenticated! Launching...';
+                btn.style.background = 'var(--teal)';
+                setTimeout(() => { window.location.replace('/home'); }, 800);
+
+            } catch (err) {
+                // Server may not be running — fallback to localStorage only mode
+                console.warn('API not reachable, using local session:', err);
+                localStorage.setItem('duckshow_auth', 'true');
+                localStorage.setItem('duckshow_user_name', firstName);
+                localStorage.setItem('duckshow_user_email', email);
+                localStorage.setItem('duckshow_user_age', age);
+
+                btn.textContent = 'Authenticated! Launching...';
+                btn.style.background = 'var(--teal)';
+                setTimeout(() => { window.location.href = 'index.html'; }, 800);
+            }
+        });
+    </script>
+</body>
+</html>

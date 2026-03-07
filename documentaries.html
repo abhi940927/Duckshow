@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duckshow — Watch Everything</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <div id="cursor"></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-box">
+            <span class="search-icon-label">🔍</span>
+            <input class="search-input" id="searchInput" placeholder="SEARCH TITLES..." autocomplete="off" />
+        </div>
+        <p class="search-hint">PRESS ESC TO CLOSE</p>
+        <div id="searchResults" style="max-height: 60vh; overflow-y: auto; width: 100%; max-width: 1200px; padding: 20px;"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-hero">
+                <div class="modal-hero-bg" id="modalBg"></div>
+                <span class="modal-hero-emoji" id="modalEmoji"></span>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <div class="modal-badges" id="modalBadges"></div>
+                <p class="modal-desc" id="modalDesc"></p>
+                <div class="modal-cast" id="modalCast"></div>
+                <div class="modal-actions" id="modalActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav id="navbar">
+        <a class="logo" href="#" data-category="Home">🦆 DUCKSHOW</a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-item" data-category="Home">Home</a>
+            <a href="movies.html" class="nav-item" data-category="Movies">Movies</a>
+            <a href="series.html" class="nav-item" data-category="Series">Series</a>
+            <a href="anime.html" class="nav-item" data-category="Anime">Anime</a>
+            <a href="documentaries.html" class="active nav-item" data-category="Documentaries">Documentaries</a>
+            <a href="new-and-hot.html" class="nav-item" data-category="New & Hot">New &amp; Hot</a>
+            <a href="my-list.html" class="nav-item" data-category="My List">My List</a>
+        </div>
+        <div class="nav-right">
+            <button class="nav-icon-btn" id="searchBtn">🔍</button>
+            <a href="login.html" class="nav-avatar" style="text-decoration: none;" title="Sign In">DS</a>
+        </div>
+    </nav>
+
+    <!-- Category Header (Hidden by default on Home) -->
+    <section class="category-header" id="categoryHeader" style="display: none; padding: 120px 48px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+        <h1 class="hero-title" id="categoryTitle" style="font-size: 3.5rem;">CATEGORY</h1>
+    </section>
+
+    <!-- Main Content Container for filtering -->
+    <div id="mainContent">
+        <!-- Hero -->
+        <section class="hero" id="heroSection">
+            <div class="hero-bg-base" id="heroBgBase"></div>
+            <div class="hero-gradient"></div>
+            <div class="hero-glow"></div>
+            <div class="hero-content">
+                <div class="hero-badge" id="heroBadge">🦆 Duckshow Original</div>
+                <h1 class="hero-title" id="heroMainTitle">DARK<br><span>WATERS</span></h1>
+                <div class="hero-meta" id="heroMeta">
+                    <span class="rating">16+</span>
+                    <span class="dot">●</span>
+                    <span>2025</span>
+                    <span class="dot">●</span>
+                    <span>2h 14m</span>
+                    <span class="dot">●</span>
+                    <span>Thriller</span>
+                </div>
+                <p class="hero-desc" id="heroDesc">A marine biologist uncovers a chilling conspiracy beneath the ocean's surface — where
+                    silence is law and the truth is buried deep. A Duckshow Original.</p>
+                <div class="hero-actions">
+                    <button class="btn-play" id="heroPlayBtn" onclick="showToast('▶ Playing Dark Waters...')">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                        PLAY
+                    </button>
+                    <button class="btn-info" id="heroInfoBtn" onclick="openModal(MOVIES[0])">ⓘ MORE INFO</button>
+                </div>
+            </div>
+            <div class="hero-progress">
+                <div class="hero-progress-bar" id="heroProgressBar"></div>
+            </div>
+        </section>
+
+        <!-- Dynamic Rows Container -->
+        <div id="dynamicRows">
+            <!-- Continue Watching -->
+            <section class="section fade-s">
+                <div class="section-header">
+                    <h2 class="section-title">CONTINUE <span>WATCHING</span></h2>
+                    <a href="#" class="section-more">VIEW ALL →</a>
+                </div>
+                <div class="cards-row" id="cwRow"></div>
+            </section>
+
+            <!-- Trending -->
+            <section class="section fade-s">
+                <div class="section-header">
+                    <h2 class="section-title">🔥 TRENDING <span>NOW</span></h2>
+                    <a href="#" class="section-more">VIEW ALL →</a>
+                </div>
+                <div class="cards-row" id="trendingRow"></div>
+            </section>
+
+            <!-- Top 10 -->
+            <section class="section fade-s">
+                <div class="section-header">
+                    <h2 class="section-title">TOP <span>10</span> THIS WEEK</h2>
+                </div>
+                <div class="top10-row" id="top10Row"></div>
+            </section>
+
+            <!-- Promo -->
+            <div class="promo fade-s" id="promoCard">
+                <div class="promo-content">
+                    <p class="promo-eyebrow">🦆 New Feature</p>
+                    <h3 class="promo-title">DUCKSHOW PREMIERE</h3>
+                    <p class="promo-desc">Watch brand new releases before anyone else. Duckshow Originals drop every Friday —
+                        exclusively for members.</p>
+                    <div class="promo-btns">
+                        <button class="btn-sm btn-sm-y" onclick="showToast('Starting your 30-day free trial!')">Start Free
+                            Trial</button>
+                        <button class="btn-sm btn-sm-g" onclick="showToast('Learn more about Duckshow Premiere')">Learn
+                            More</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Originals -->
+            <section class="section fade-s" id="originalsSection">
+                <div class="section-header">
+                    <h2 class="section-title">🦆 DUCKSHOW <span>ORIGINALS</span></h2>
+                    <a href="#" class="section-more">VIEW ALL →</a>
+                </div>
+                <div class="cards-row" id="originalsRow"></div>
+            </section>
+
+            <!-- Categories -->
+            <section class="section fade-s" id="genreCategories">
+                <div class="section-header">
+                    <h2 class="section-title">BROWSE BY <span>GENRE</span></h2>
+                </div>
+                <div class="cats-grid" id="catsGrid"></div>
+            </section>
+
+            <!-- New Releases -->
+            <section class="section fade-s">
+                <div class="section-header">
+                    <h2 class="section-title">⚡ NEW <span>RELEASES</span></h2>
+                    <a href="#" class="section-more">VIEW ALL →</a>
+                </div>
+                <div class="cards-row" id="newRow"></div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="fade-s">
+        <div class="footer-logo">🦆 DUCKSHOW</div>
+        <div class="footer-links">
+            <div class="footer-col">
+                <p class="footer-col-title">Navigate</p>
+                <a href="#">Home</a><a href="#">Movies</a><a href="#">Series</a><a href="#">Anime</a><a
+                    href="#">Documentaries</a>
+            </div>
+            <div class="footer-col">
+                <p class="footer-col-title">Account</p>
+                <a href="#">My Profile</a><a href="#">My List</a><a href="#">Payment</a><a href="#">Settings</a><a
+                    href="#">Parental Controls</a>
+            </div>
+            <div class="footer-col">
+                <p class="footer-col-title">Support</p>
+                <a href="#">Help Center</a><a href="#">Device Support</a><a href="#">Contact Us</a><a
+                    href="#">Accessibility</a>
+            </div>
+            <div class="footer-col">
+                <p class="footer-col-title">Legal</p>
+                <a href="#">Privacy Policy</a><a href="#">Terms of Use</a><a href="#">Cookie Preferences</a><a
+                    href="#">Corporate Info</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2025 Duckshow, Inc. All rights reserved. 🦆</span>
+            <div class="footer-socials">
+                <a href="#">𝕏</a><a href="#">◈</a><a href="#">▷</a><a href="#">⬡</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
+    <script>
+        populate('Documentaries');
+    </script>
+</body>
+
+</html>

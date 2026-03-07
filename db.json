@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "90227b37-6c84-4e61-8c3f-536ea8648420",
+      "name": "TestDuck",
+      "email": "test@duckshow.com",
+      "password": "quack123",
+      "age": 25,
+      "createdAt": "2026-03-07T12:24:34.451Z"
+    },
+    {
+      "id": "20ed2759-43c5-44ec-aaab-5a00d2a34401",
+      "name": "Abhinav",
+      "email": "abhisingh940927@gmail.com",
+      "password": "Abhi@9191",
+      "age": 19,
+      "createdAt": "2026-03-07T12:30:20.775Z"
+    }
+  ],
+  "mylist": {},
+  "subscriptions": {}
+}
