@@ -31,7 +31,8 @@ mongoose.connect(process.env.MONGODB_URI)
         try {
             const users = await User.find({});
             for (let user of users) {
-                if (user.email !== user.email.toLowerCase()) {
+                // Ensure user.email exists to avoid "Cannot read properties of null (reading 'toLowerCase')"
+                if (user.email && user.email !== user.email.toLowerCase()) {
                     user.email = user.email.toLowerCase();
                     await user.save();
                     console.log(`🔧 Migrated email for: ${user.email}`);
@@ -48,7 +49,9 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // ─── Email Configuration ─────────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    // Using explicit IPv4 to avoid ENETUNREACH on Railway 
+    // Usually dns.setDefaultResultOrder works, but explicitly forcing family or hardcoding IP is safer.
+    host: '142.251.10.108', // Hardcoded IPv4 for smtp.gmail.com
     port: 465,
     secure: true, // Use SSL
     auth: {
@@ -56,6 +59,8 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     },
     tls: {
+        // Required so TLS doesn't fail on IP mismatch
+        servername: 'smtp.gmail.com',
         // Do not fail on invalid certs
         rejectUnauthorized: false
     }
