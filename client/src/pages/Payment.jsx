@@ -76,7 +76,7 @@ const Payment = () => {
                         </div>
                         <div>
                             <p style={{ fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Direct UPI Payment</p>
-                            <h3 style={{ fontSize: '1.8rem', letterSpacing: '2px', color: '#fff' }}>9905359191</h3>
+                            <h3 style={{ fontSize: '1.8rem', letterSpacing: '2px', color: '#fff' }}>+91 1234567890</h3>
                         </div>
                     </div>
                     <p style={{ color: '#ccc', fontSize: '0.95rem', lineHeight: '1.5' }}>
