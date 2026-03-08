@@ -40,8 +40,10 @@ const Login = () => {
                     emailOrPhone: formData.emailOrPhone,
                     password: formData.password
                 });
-                if (loginRes.data.success && loginRes.data.requiresOtp) {
-                    setRequiresOtp(true);
+                if (loginRes.data.success) {
+                    localStorage.setItem('duckshow_just_logged_in', 'true');
+                    login(loginRes.data.user);
+                    navigate('/home');
                 }
             } else {
                 const dob = new Date(formData.dob);
@@ -64,8 +66,10 @@ const Login = () => {
                     dob: formData.dob
                 });
 
-                if (res.data.success && res.data.requiresOtp) {
-                    setRequiresOtp(true);
+                if (res.data.success) {
+                    localStorage.setItem('duckshow_just_logged_in', 'true');
+                    login(res.data.user);
+                    navigate('/home');
                 }
             }
         } catch (err) {

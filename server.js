@@ -259,21 +259,8 @@ app.post('/api/register', async (req, res) => {
         
         if (email) newUserPayload.email = email;
         if (phone) newUserPayload.phone = phone;
-
         await User.create(newUserPayload);
-        
-        if (isEmail) {
-            const emailSent = await sendOtpEmail(email, name, otpCode);
-            if (!emailSent) {
-                // Important: Delete the partially created user so they aren't trapped
-                await User.findByIdAndDelete(newUserPayload._id); 
-                return res.status(502).json({ error: 'Failed to send verification email. Please try again later or use your Phone Number.' });
-            }
-        } else {
-            console.log(`\n📱 SIMULATED SMS TO ${phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
-        }
-
-        res.status(201).json({ success: true, requiresOtp: true, message: isEmail ? 'OTP sent to email.' : 'OTP sent via SMS.' });
+        res.status(201).json({ success: true, user: newUserPayload });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during registration.' });
@@ -296,22 +283,20 @@ app.post('/api/login', async (req, res) => {
         const user = await User.findOne(query);
         if (!user) return res.status(401).json({ error: 'Invalid email/phone or password.' });
 
-        // Generate new 6-digit OTP
-        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        user.otp = otpCode;
-        user.otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
-        await user.save();
-        
-        if (user.email) {
-            const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
-            if (!emailSent) {
-                return res.status(502).json({ error: 'Failed to send verification email. Please try again later.' });
-            }
-        } else if (user.phone) {
-            console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
+        const { password: _, ...safeUser } = user.toObject();
+
+        // Optional: Trigger standard login notification alerting an admin
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+             const adminMailOptions = {
+                from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
+                to: process.env.EMAIL_USER,
+                subject: `🔔 Admin Alert: Login by ${user.name || 'User'}`,
+                html: `<p>User ${user.email || user.phone} logged into Duckshow.</p>`
+            };
+            transporter.sendMail(adminMailOptions).catch(e => console.error(e));
         }
 
-        res.json({ success: true, requiresOtp: true, message: user.email ? 'OTP sent to email.' : 'OTP sent via SMS.' });
+        res.json({ success: true, user: safeUser });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during login.' });
