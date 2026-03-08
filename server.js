@@ -13,6 +13,11 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── MongoDB Connection ───────────────────────────────────────────────────────
+if (!process.env.MONGODB_URI) {
+    console.error('❌  CRITICAL ERROR: MONGODB_URI is not defined in environment variables.');
+    console.log('   → Make sure you have added MONGODB_URI in your Railway Variables tab.');
+    process.exit(1);
+}
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log('✅  MongoDB connected');
