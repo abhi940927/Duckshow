@@ -155,8 +155,10 @@ const sendOtpEmail = async (userEmail, userName, otpCode) => {
     try {
         await transporter.sendMail(mailOptions);
         console.log(`🔐 OTP Security Email sent to: ${userEmail}`);
+        return true;
     } catch (err) {
         console.error('❌ Failed to send OTP email:', err.message);
+        return false;
     }
 };
 
@@ -237,19 +239,25 @@ app.post('/api/register', async (req, res) => {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
 
-        await User.create({ 
-            name, 
-            email, 
-            phone,
+        const newUserPayload = { 
+            name,
             password, 
             age: Number(age) || null,
             dob: dob ? new Date(dob) : null,
             otp: otpCode,
             otpExpires: otpExpires
-        });
+        };
+        
+        if (email) newUserPayload.email = email;
+        if (phone) newUserPayload.phone = phone;
+
+        await User.create(newUserPayload);
         
         if (isEmail) {
-            sendOtpEmail(email, name, otpCode);
+            const emailSent = await sendOtpEmail(email, name, otpCode);
+            if (!emailSent) {
+                console.warn('Email failed to send, but account was created.');
+            }
         } else {
             console.log(`\n📱 SIMULATED SMS TO ${phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
         }
@@ -284,7 +292,7 @@ app.post('/api/login', async (req, res) => {
         await user.save();
         
         if (user.email) {
-            sendOtpEmail(user.email, user.name || 'User', otpCode);
+            await sendOtpEmail(user.email, user.name || 'User', otpCode);
         } else if (user.phone) {
             console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
         }
@@ -361,7 +369,7 @@ app.post('/api/forgot-password-request-otp', async (req, res) => {
         await user.save();
         
         if (user.email) {
-            sendOtpEmail(user.email, user.name || 'User', otpCode);
+            await sendOtpEmail(user.email, user.name || 'User', otpCode);
         } else if (user.phone) {
             console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow Password Reset OTP is: ${otpCode}\n`);
         }
