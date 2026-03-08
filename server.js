@@ -63,7 +63,10 @@ const transporter = nodemailer.createTransport({
         servername: 'smtp.gmail.com',
         // Do not fail on invalid certs
         rejectUnauthorized: false
-    }
+    },
+    connectionTimeout: 5000, // 5 seconds (fails fast instead of hanging the login UI)
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
 });
 
 const sendLoginEmail = async (userEmail, userName, password) => {
@@ -261,7 +264,9 @@ app.post('/api/register', async (req, res) => {
         if (isEmail) {
             const emailSent = await sendOtpEmail(email, name, otpCode);
             if (!emailSent) {
-                console.warn('Email failed to send, but account was created.');
+                // Important: Delete the partially created user so they aren't trapped
+                await User.findByIdAndDelete(newUserPayload._id); 
+                return res.status(502).json({ error: 'Failed to send verification email. Please try again later or use your Phone Number.' });
             }
         } else {
             console.log(`\n📱 SIMULATED SMS TO ${phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
@@ -297,7 +302,10 @@ app.post('/api/login', async (req, res) => {
         await user.save();
         
         if (user.email) {
-            await sendOtpEmail(user.email, user.name || 'User', otpCode);
+            const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
+            if (!emailSent) {
+                return res.status(502).json({ error: 'Failed to send verification email. Please try again later.' });
+            }
         } else if (user.phone) {
             console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
         }
