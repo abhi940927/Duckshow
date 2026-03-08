@@ -75,7 +75,10 @@ const Settings = () => {
                         </p>
                     </div>
                     {!sub && (
-                        <button style={{ background: 'var(--yellow)', color: 'black', padding: '8px 20px', borderRadius: '4px', fontWeight: 'bold' }}>
+                        <button 
+                            onClick={() => window.location.href = '/payment'}
+                            style={{ background: 'var(--yellow)', color: 'black', padding: '8px 20px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
                             UPGRADE
                         </button>
                     )}

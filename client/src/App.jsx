@@ -10,6 +10,7 @@ import CategoryPage from './pages/CategoryPage';
 import MyList from './pages/MyList';
 import Settings from './pages/Settings';
 import Home from './pages/Home';
+import Payment from './pages/Payment';
 import Footer from './components/Footer';
 import { About, Privacy, Terms } from './pages/InfoPages';
 
@@ -44,6 +45,7 @@ function App() {
                             <Route path="/new-and-hot" element={<CategoryPage />} />
                             <Route path="/my-list" element={<MyList />} />
                             <Route path="/settings" element={<Settings />} />
+                            <Route path="/payment" element={<Payment />} />
                             
                             {/* Informational Pages */}
                             <Route path="/about" element={<About />} />

@@ -24,12 +24,13 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (userData) => {
+        const userId = userData._id || userData.id;
         localStorage.setItem('duckshow_auth', 'true');
-        localStorage.setItem('duckshow_user_id', userData.id);
+        localStorage.setItem('duckshow_user_id', userId);
         localStorage.setItem('duckshow_user_name', userData.name);
         localStorage.setItem('duckshow_user_email', userData.email);
         localStorage.setItem('duckshow_user_age', userData.age);
-        setUser(userData);
+        setUser({ ...userData, id: userId });
     };
 
     const logout = () => {
