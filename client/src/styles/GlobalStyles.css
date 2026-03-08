@@ -184,14 +184,17 @@ h2, h3 {
     border-radius: var(--radius);
     overflow: hidden;
     position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Springy cubic-bezier transition for that premium snap feel */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
     background: var(--card);
+    border: 1px solid transparent;
 }
 
 .card:hover {
-    transform: scale(1.05);
+    transform: scale(1.08) translateY(-8px);
     z-index: 20;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 20px rgba(255, 214, 0, 0.15);
+    border-color: rgba(255, 214, 0, 0.4);
 }
 
 .card-thumb {
@@ -258,23 +261,33 @@ h2, h3 {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
+    /* Start smaller, move down slightly */
+    transform: translate(-50%, -40%) scale(0.6);
     background: var(--yellow);
     color: black;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: all 0.3s ease;
+    /* Smooth spring animation for the play button */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 15px rgba(255,214,0,0.4);
+    font-size: 1.2rem;
 }
 
 .card:hover .card-play-btn {
     opacity: 1;
+    /* Snap into place */
     transform: translate(-50%, -50%) scale(1);
+}
+
+.card-play-btn:hover {
+    background: white; /* Give play button its own hover state */
+    transform: translate(-50%, -50%) scale(1.15) !important;
+    box-shadow: 0 8px 25px rgba(255,255,255,0.6);
 }
 
 /* Background Gradients for Thumbnails */
