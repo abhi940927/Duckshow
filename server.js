@@ -52,8 +52,9 @@ const transporter = nodemailer.createTransport({
     // Using explicit IPv4 to avoid ENETUNREACH on Railway 
     // Usually dns.setDefaultResultOrder works, but explicitly forcing family or hardcoding IP is safer.
     host: '142.251.10.108', // Hardcoded IPv4 for smtp.gmail.com
-    port: 465,
-    secure: true, // Use SSL
+    port: 587,              // Port 465 is usually aggressively blocked; trying 587 (STARTTLS)
+    secure: false,          // false for 587, true for 465
+    requireTLS: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
