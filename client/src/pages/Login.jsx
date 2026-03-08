@@ -13,6 +13,8 @@ const Login = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [requiresOtp, setRequiresOtp] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -28,18 +30,16 @@ const Login = () => {
 
         try {
             if (isLogin) {
-                // Direct Login Flow
+                // Direct Login Flow (Step 1)
                 const loginRes = await axios.post('/api/login', {
                     email: formData.email,
                     password: formData.password
                 });
-                if (loginRes.data.success) {
-                    localStorage.setItem('duckshow_just_logged_in', 'true');
-                    login(loginRes.data.user);
-                    navigate('/home');
+                if (loginRes.data.success && loginRes.data.requiresOtp) {
+                    setRequiresOtp(true);
                 }
             } else {
-                // Registration Flow
+                // Registration Flow (Step 1)
                 const dob = new Date(formData.dob);
                 const today = new Date();
                 let age = today.getFullYear() - dob.getFullYear();
@@ -59,10 +59,8 @@ const Login = () => {
                     age
                 });
 
-                if (res.data.success) {
-                    localStorage.setItem('duckshow_just_logged_in', 'true');
-                    login(res.data.user);
-                    navigate('/home');
+                if (res.data.success && res.data.requiresOtp) {
+                    setRequiresOtp(true);
                 }
             }
         } catch (err) {
@@ -74,6 +72,29 @@ const Login = () => {
             } else {
                 setError(err.response?.data?.error || 'Authentication failed.');
             }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOtpSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const res = await axios.post('/api/verify-otp', {
+                email: formData.email,
+                otp: otpCode
+            });
+
+            if (res.data.success) {
+                localStorage.setItem('duckshow_just_logged_in', 'true');
+                login(res.data.user);
+                navigate('/home');
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || 'Invalid OTP code.');
         } finally {
             setLoading(false);
         }
@@ -98,9 +119,20 @@ const Login = () => {
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 className="logo-font" style={{ color: 'var(--yellow)', fontSize: '2.5rem' }}>🦆 DUCKSHOW</h1>
-                    <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px' }}>
-                        {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start streaming.'}
-                    </p>
+                    {requiresOtp ? (
+                        <>
+                            <p style={{ fontSize: '1rem', color: 'white', marginTop: '16px', fontWeight: 'bold' }}>
+                                Security Verification
+                            </p>
+                            <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px' }}>
+                                We've sent a 6-digit code to <strong style={{color: 'var(--yellow)'}}>{formData.email}</strong>
+                            </p>
+                        </>
+                    ) : (
+                        <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px' }}>
+                            {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start streaming.'}
+                        </p>
+                    )}
                 </div>
 
                 {error && <div style={{
@@ -114,101 +146,150 @@ const Login = () => {
                     border: '1px solid rgba(229, 57, 53, 0.2)'
                 }}>{error}</div>}
 
-                <form onSubmit={handleSubmit}>
-                    {!isLogin && (
-                        <div style={{ marginBottom: '16px' }}>
+                {requiresOtp ? (
+                    <form onSubmit={handleOtpSubmit}>
+                        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
                             <input 
                                 type="text" 
-                                name="firstName" 
-                                placeholder="First Name"
+                                name="otpCode" 
+                                placeholder="• • • • • •"
+                                maxLength="6"
                                 required
-                                value={formData.firstName}
-                                onChange={handleChange}
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                                 style={{
-                                    width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
-                                    borderRadius: '4px', color: 'white', outline: 'none'
+                                    width: '100%', padding: '16px', background: '#222', border: '1px dashed var(--yellow)', 
+                                    borderRadius: '8px', color: 'white', outline: 'none',
+                                    fontSize: '2rem', textAlign: 'center', letterSpacing: '10px'
                                 }}
                             />
                         </div>
-                    )}
-                    <div style={{ marginBottom: '16px' }}>
-                        <input 
-                            type="email" 
-                            name="email" 
-                            placeholder="Email"
-                            required
-                            value={formData.email}
-                            onChange={handleChange}
-                            style={{
-                                width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
-                                borderRadius: '4px', color: 'white', outline: 'none'
-                            }}
-                        />
-                    </div>
-                    <div style={{ marginBottom: '16px' }}>
-                        <input 
-                            type="password" 
-                            name="password" 
-                            placeholder="Password"
-                            required
-                            value={formData.password}
-                            onChange={handleChange}
-                            style={{
-                                width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
-                                borderRadius: '4px', color: 'white', outline: 'none'
-                            }}
-                        />
-                    </div>
-                    {!isLogin && (
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', fontSize: '0.75rem', color: '#888', marginBottom: '4px' }}>Date of Birth</label>
-                            <input 
-                                type="date" 
-                                name="dob" 
-                                required
-                                value={formData.dob}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
-                                    borderRadius: '4px', color: 'white', outline: 'none'
-                                }}
-                            />
-                        </div>
-                    )}
-
-                    <button 
-                        type="submit" 
-                        className="login-btn"
-                        disabled={loading}
-                        style={{
-                            width: '100%', padding: '14px', background: 'var(--yellow)', color: 'var(--black)',
-                            fontWeight: 'bold', fontSize: '1rem', borderRadius: '4px',
-                            opacity: loading ? 0.7 : 1, transition: 'background 0.2s'
-                        }}
-                    >
-                        {loading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
-                    </button>
-                    
-                    <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.9rem' }}>
-                        <span style={{ color: '#666' }}>
-                            {isLogin ? "New to Duckshow? " : "Already have an account? "}
-                        </span>
                         <button 
-                            type="button"
-                            onClick={() => setIsLogin(!isLogin)}
-                            style={{ 
-                                background: 'none', border: 'none', color: 'var(--yellow)', 
-                                cursor: 'none', fontWeight: 'bold', padding: '0' 
+                            type="submit" 
+                            className="login-btn"
+                            disabled={loading}
+                            style={{
+                                width: '100%', padding: '14px', background: 'var(--yellow)', color: 'var(--black)',
+                                fontWeight: 'bold', fontSize: '1rem', borderRadius: '4px',
+                                opacity: loading ? 0.7 : 1, transition: 'background 0.2s'
                             }}
                         >
-                            {isLogin ? "Join Now" : "Sign In"}
+                            {loading ? 'VERIFYING...' : 'CONFIRM LOGIN'}
                         </button>
-                    </div>
+                        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.85rem' }}>
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setRequiresOtp(false);
+                                    setOtpCode('');
+                                    setError('');
+                                }}
+                                style={{ 
+                                    background: 'none', border: 'none', color: '#888', 
+                                    cursor: 'none', textDecoration: 'underline', padding: '0' 
+                                }}
+                            >
+                                Back to Login
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        {!isLogin && (
+                            <div style={{ marginBottom: '16px' }}>
+                                <input 
+                                    type="text" 
+                                    name="firstName" 
+                                    placeholder="First Name"
+                                    required
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    style={{
+                                        width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
+                                        borderRadius: '4px', color: 'white', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                        )}
+                        <div style={{ marginBottom: '16px' }}>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                placeholder="Email"
+                                required
+                                value={formData.email}
+                                onChange={handleChange}
+                                style={{
+                                    width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
+                                    borderRadius: '4px', color: 'white', outline: 'none'
+                                }}
+                            />
+                        </div>
+                        <div style={{ marginBottom: '16px' }}>
+                            <input 
+                                type="password" 
+                                name="password" 
+                                placeholder="Password"
+                                required
+                                value={formData.password}
+                                onChange={handleChange}
+                                style={{
+                                    width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
+                                    borderRadius: '4px', color: 'white', outline: 'none'
+                                }}
+                            />
+                        </div>
+                        {!isLogin && (
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '0.75rem', color: '#888', marginBottom: '4px' }}>Date of Birth</label>
+                                <input 
+                                    type="date" 
+                                    name="dob" 
+                                    required
+                                    value={formData.dob}
+                                    onChange={handleChange}
+                                    style={{
+                                        width: '100%', padding: '12px', background: '#222', border: '1px solid #333', 
+                                        borderRadius: '4px', color: 'white', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                        )}
 
-                    <p style={{ fontSize: '0.7rem', color: '#666', textAlign: 'center', marginTop: '20px' }}>
-                        By proceeding, you agree to our Terms of Service.
-                    </p>
-                </form>
+                        <button 
+                            type="submit" 
+                            className="login-btn"
+                            disabled={loading}
+                            style={{
+                                width: '100%', padding: '14px', background: 'var(--yellow)', color: 'var(--black)',
+                                fontWeight: 'bold', fontSize: '1rem', borderRadius: '4px',
+                                opacity: loading ? 0.7 : 1, transition: 'background 0.2s'
+                            }}
+                        >
+                            {loading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
+                        </button>
+                        
+                        <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.9rem' }}>
+                            <span style={{ color: '#666' }}>
+                                {isLogin ? "New to Duckshow? " : "Already have an account? "}
+                            </span>
+                            <button 
+                                type="button"
+                                onClick={() => setIsLogin(!isLogin)}
+                                style={{ 
+                                    background: 'none', border: 'none', color: 'var(--yellow)', 
+                                    cursor: 'none', fontWeight: 'bold', padding: '0' 
+                                }}
+                            >
+                                {isLogin ? "Join Now" : "Sign In"}
+                            </button>
+                        </div>
+
+                        <p style={{ fontSize: '0.7rem', color: '#666', textAlign: 'center', marginTop: '20px' }}>
+                            By proceeding, you agree to our Terms of Service.
+                        </p>
+                    </form>
+                )}
             </div>
         </div>
     );

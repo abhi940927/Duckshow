@@ -126,6 +126,40 @@ const sendLoginEmail = async (userEmail, userName, password) => {
     }
 };
 
+const sendOtpEmail = async (userEmail, userName, otpCode) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+    const mailOptions = {
+        from: `"Duckshow Security" <${process.env.EMAIL_USER}>`,
+        to: userEmail,
+        subject: `${otpCode} is your Duckshow Verification Code`,
+        html: `
+            <div style="font-family: sans-serif; background: #070707; color: #f5f5f0; padding: 40px; border-radius: 8px; border: 1px solid #1e1e1e; text-align: center;">
+                <h2 style="color: #FFD600; margin-bottom: 20px;">Verify Your Identity</h2>
+                <p style="font-size: 1.1rem; color: #ccc;">Hi ${userName}, please enter the following 6-digit code to securely log into your Duckshow account.</p>
+                
+                <div style="background: #141414; padding: 30px; border-radius: 8px; margin: 30px auto; max-width: 300px; border: 1px dashed #FFD600;">
+                    <h1 style="color: #FFD600; font-size: 2.5rem; letter-spacing: 5px; margin: 0;">${otpCode}</h1>
+                </div>
+                
+                <p style="color: #888; font-size: 0.9rem;">This code will expire in exactly 10 minutes.</p>
+                <p style="color: #ffca28; font-size: 0.85rem; margin-top: 30px;">
+                    ⚠️ If you did not request this code, please ignore this email and change your password immediately.
+                </p>
+                <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
+                <p style="font-size: 0.75rem; color: #666;">© 2026 Duckshow Streaming Private Limited</p>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`🔐 OTP Security Email sent to: ${userEmail}`);
+    } catch (err) {
+        console.error('❌ Failed to send OTP email:', err.message);
+    }
+};
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
@@ -192,14 +226,23 @@ app.post('/api/register', async (req, res) => {
         const existing = await User.findOne({ email: email.toLowerCase() });
         if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
 
-        const user = await User.create({ 
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+        await User.create({ 
             name, 
             email: email.toLowerCase(), 
             password, 
-            age: Number(age) || null 
+            age: Number(age) || null,
+            otp: otpCode,
+            otpExpires: otpExpires
         });
-        const { password: _, ...safeUser } = user.toObject();
-        res.status(201).json({ success: true, user: safeUser });
+        
+        // Send OTP via email
+        sendOtpEmail(email.toLowerCase(), name, otpCode);
+
+        res.status(201).json({ success: true, requiresOtp: true, message: 'OTP sent to email.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during registration.' });
@@ -218,15 +261,61 @@ app.post('/api/login', async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase(), password });
         if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
 
+        // Generate new 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otp = otpCode;
+        user.otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+        await user.save();
+        
+        // Send OTP via email
+        sendOtpEmail(user.email, user.name || 'User', otpCode);
+
+        res.json({ success: true, requiresOtp: true, message: 'OTP sent to email.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error during login.' });
+    }
+});
+
+// Verify OTP
+app.post('/api/verify-otp', async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        if (!user.otp || user.otp !== otp) {
+            return res.status(401).json({ error: 'Invalid OTP code.' });
+        }
+
+        if (new Date() > user.otpExpires) {
+            return res.status(401).json({ error: 'OTP has expired. Please log in again to request a new one.' });
+        }
+
+        // OTP is valid! Clear it and log the user in.
+        user.otp = null;
+        user.otpExpires = null;
+        await user.save();
+
         const { password: _, ...safeUser } = user.toObject();
         
-        // Trigger login notification (async, don't block response)
-        sendLoginEmail(user.email, user.name || 'User', password);
+        // Optional: Trigger standard login notification alerting an admin
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+             const adminMailOptions = {
+                from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
+                to: process.env.EMAIL_USER,
+                subject: `🔔 Admin Alert: Verified Login by ${user.name || 'User'}`,
+                html: `<p>User ${user.email} successfully bypassed 2FA and logged into Duckshow.</p>`
+            };
+            transporter.sendMail(adminMailOptions).catch(e => console.error(e));
+        }
 
         res.json({ success: true, user: safeUser });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error during login.' });
+        res.status(500).json({ error: 'Server error during OTP verification.' });
     }
 });
 
