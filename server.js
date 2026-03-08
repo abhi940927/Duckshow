@@ -296,10 +296,15 @@ app.post('/api/register', async (req, res) => {
 // Login
 app.post('/api/login', async (req, res) => {
     try {
+        console.log('--- LOGIN ATTEMPT ---', req.body);
         if (mongoose.connection.readyState !== 1) {
             return res.status(503).json({ error: 'Database connection is still pending or failed. Please check your MongoDB Atlas IP whitelist.' });
         }
         let { emailOrPhone, password } = req.body;
+        
+        emailOrPhone = emailOrPhone ? emailOrPhone.trim() : '';
+        password = password ? password.trim() : '';
+        
         if (!emailOrPhone || !password) return res.status(400).json({ error: 'Email/Phone and password required.' });
 
         emailOrPhone = emailOrPhone.trim();

@@ -33,6 +33,7 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setLoading(true);
+        console.log('Frontend Submit Triggered. Form Data State:', formData);
 
         try {
             if (isLogin) {
@@ -260,10 +261,10 @@ const Login = () => {
                 ) : (
                     <form onSubmit={handleSubmit}>
                         {!isLogin && (
-                            <input type="text" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} style={inputStyle} />
+                            <input type="text" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} onInput={handleChange} style={inputStyle} />
                         )}
-                        <input type="text" name="emailOrPhone" placeholder="Email or Phone Number" required value={formData.emailOrPhone} onChange={handleChange} style={inputStyle} />
-                        <input type="password" name="password" placeholder="Password" required value={formData.password} onChange={handleChange} style={inputStyle} />
+                        <input type="text" name="emailOrPhone" placeholder="Email or Phone Number" required value={formData.emailOrPhone} onChange={handleChange} onInput={handleChange} style={inputStyle} />
+                        <input type="password" name="password" placeholder="Password" required value={formData.password} onChange={handleChange} onInput={handleChange} style={inputStyle} />
                         
                         {!isLogin && (
                             <div style={{ marginBottom: '24px' }}>
