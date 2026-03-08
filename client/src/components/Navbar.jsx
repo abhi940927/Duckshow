@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, Bell, User, Settings, LogOut } from 'lucide-react';
+import { Search, Bell, User, Settings, LogOut, Menu, X } from 'lucide-react';
 import SearchOverlay from './SearchOverlay';
 
 const Navbar = () => {
@@ -9,6 +9,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,46 +25,41 @@ const Navbar = () => {
     return (
         <>
             <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-            <nav className={scrolled ? 'scrolled' : ''} style={{
-                position: 'fixed',
-                top: 0, left: 0, right: 0,
-                zIndex: 900,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 48px',
-                height: '68px',
-                background: scrolled ? 'rgba(7, 7, 7, 0.97)' : 'linear-gradient(to bottom, rgba(7, 7, 7, 0.98), transparent)',
-                borderBottom: scrolled ? '1px solid #1e1e1e' : 'none',
-                transition: 'background 0.3s'
-            }}>
-                <div className="nav-left" style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-                    <Link to="/home" className="logo logo-font" style={{ fontSize: '2rem', color: 'var(--yellow)' }}>
+            <nav className={`nav-container ${scrolled ? 'scrolled' : ''}`}>
+                <div className="nav-left" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <button 
+                        className="mobile-menu-btn" 
+                        style={{ display: 'none', background: 'none', border: 'none', color: 'white' }}
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                    
+                    <Link to="/home" className="nav-logo logo-font">
                         🦆 DUCKSHOW
                     </Link>
                     
-                    <div className="nav-links" style={{ display: 'flex', gap: '24px' }}>
-                        <NavLink to="/home" className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
-                        <NavLink to="/series">Series</NavLink>
-                        <NavLink to="/movies">Movies</NavLink>
-                        <NavLink to="/anime">Anime</NavLink>
-                        <NavLink to="/new-and-hot">New & Hot</NavLink>
-                        <NavLink to="/my-list">My List</NavLink>
+                    <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+                        <NavLink to="/home" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMobileMenuOpen(false)}>Home</NavLink>
+                        <NavLink to="/series" onClick={() => setMobileMenuOpen(false)}>Series</NavLink>
+                        <NavLink to="/movies" onClick={() => setMobileMenuOpen(false)}>Movies</NavLink>
+                        <NavLink to="/anime" onClick={() => setMobileMenuOpen(false)}>Anime</NavLink>
+                        <NavLink to="/new-and-hot" onClick={() => setMobileMenuOpen(false)}>New & Hot</NavLink>
+                        <NavLink to="/my-list" onClick={() => setMobileMenuOpen(false)}>My List</NavLink>
                     </div>
                 </div>
 
-                <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div className="nav-right-actions">
                     <button className="nav-icon-btn" onClick={() => setSearchOpen(true)}>
                         <Search size={20} />
                     </button>
-                    <button className="nav-icon-btn"><Bell size={20} /></button>
+                    <button className="nav-icon-btn" style={{ display: window.innerWidth < 768 ? 'none' : 'block' }}><Bell size={20} /></button>
                     
                     <div className="profile-container" style={{ position: 'relative' }}>
                         <div 
                             className="nav-avatar" 
                             onMouseEnter={() => setDropdownOpen(true)}
                             onClick={() => setDropdownOpen(!dropdownOpen)}
-                            style={{ cursor: 'none' }}
                         >
                             {userInitials}
                         </div>
@@ -87,7 +83,7 @@ const Navbar = () => {
                             >
                                 <div style={{ padding: '12px 16px', borderBottom: '1px solid #282828', marginBottom: '8px' }}>
                                     <p style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user?.name}</p>
-                                    <p style={{ fontSize: '0.75rem', color: '#888' }}>{user?.email}</p>
+                                    <p style={{ fontSize: '0.75rem', color: '#888', wordBreak: 'break-all' }}>{user?.email}</p>
                                 </div>
                                 
                                 <Link to="/settings" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', fontSize: '0.85rem' }}>

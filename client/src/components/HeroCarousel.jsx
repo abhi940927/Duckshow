@@ -21,7 +21,7 @@ const HeroCarousel = ({ movies }) => {
     const movie = heroMovies[currentIndex];
 
     return (
-        <div className="hero" style={{ height: '80vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 48px' }}>
+        <div className="hero-container">
             <AnimatePresence mode="wait">
                 <motion.div 
                     key={movie.id}
@@ -36,7 +36,7 @@ const HeroCarousel = ({ movies }) => {
                 </motion.div>
             </AnimatePresence>
 
-            <div className="hero-content" style={{ position: 'relative', zIndex: 2, maxWidth: '600px' }}>
+            <div className="hero-content" style={{ position: 'relative', zIndex: 2, maxWidth: '600px', width: '100%' }}>
                 <motion.div 
                     key={`content-${movie.id}`}
                     initial={{ opacity: 0, y: 30 }}
@@ -48,19 +48,19 @@ const HeroCarousel = ({ movies }) => {
                     }}>
                         {movie.type}
                     </span>
-                    <h1 className="hero-title logo-font" style={{ fontSize: '5rem', lineHeight: 1, marginBottom: '20px' }}>
+                    <h1 className="hero-main-title logo-font">
                         {movie.title}
                     </h1>
-                    <div className="hero-meta mono-font" style={{ display: 'flex', gap: '15px', color: '#888', marginBottom: '20px', fontSize: '0.9rem' }}>
+                    <div className="hero-meta mono-font" style={{ display: 'flex', gap: '15px', color: '#888', marginBottom: '20px', fontSize: '0.9rem', flexWrap: 'wrap' }}>
                         <span style={{ color: 'var(--yellow)', fontWeight: 'bold' }}>{movie.rating}</span>
                         <span>{movie.year}</span>
                         <span>{movie.runtime}</span>
                         <span>{movie.genre}</span>
                     </div>
-                    <p className="hero-desc" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', marginBottom: '30px' }}>
+                    <p className="hero-description">
                         {movie.desc}
                     </p>
-                    <div className="hero-actions" style={{ display: 'flex', gap: '15px' }}>
+                    <div className="hero-actions">
                         <button className="btn-play" style={{ background: 'var(--yellow)', color: 'black', padding: '12px 35px', borderRadius: '4px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Play size={20} fill="currentColor" /> Play
                         </button>
