@@ -9,8 +9,11 @@ const MovieRow = ({ title, movies, onPlay }) => {
 
     const handleViewAll = () => {
         const lowerTitle = title.toLowerCase();
+        
+        // Custom endpoints for specific rows on Home page based on keywords
         if (lowerTitle.includes('series')) navigate('/series');
         else if (lowerTitle.includes('anime')) navigate('/anime');
+        else if (lowerTitle.includes('new & hot')) navigate('/new-and-hot');
         else navigate('/movies');
     };
 

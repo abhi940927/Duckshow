@@ -10,7 +10,15 @@ const Navbar = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [notifOpen, setNotifOpen] = useState(false);
     const navigate = useNavigate();
+
+    // Mock recent notifications for the demo
+    const recentNotifications = [
+        { id: 1, text: "Welcome to Duckshow! 🦆 Start exploring New & Hot.", time: "Just now" },
+        { id: 2, text: "Season 2 of MECHA RONIN is now streaming.", time: "2 hours ago" },
+        { id: 3, text: "We've added 10 new movies to the catalog!", time: "1 day ago" }
+    ];
 
     useEffect(() => {
         const handleScroll = () => {
@@ -53,13 +61,60 @@ const Navbar = () => {
                     <button className="nav-icon-btn" onClick={() => setSearchOpen(true)}>
                         <Search size={20} />
                     </button>
-                    <button className="nav-icon-btn" style={{ display: window.innerWidth < 768 ? 'none' : 'block' }}><Bell size={20} /></button>
+                    
+                    <div style={{ position: 'relative', display: window.innerWidth < 768 ? 'none' : 'block' }}>
+                        <button 
+                            className="nav-icon-btn" 
+                            onClick={() => { setNotifOpen(!notifOpen); setDropdownOpen(false); }}
+                        >
+                            <Bell size={20} />
+                            {/* Notification Dot indicator */}
+                            <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--red)', width: '6px', height: '6px', borderRadius: '50%' }}></span>
+                        </button>
+                        
+                        {notifOpen && (
+                            <div 
+                                className="notif-dropdown"
+                                onMouseLeave={() => setNotifOpen(false)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '44px',
+                                    right: 0,
+                                    background: '#141414',
+                                    border: '1px solid #282828',
+                                    borderRadius: '4px',
+                                    width: '320px',
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                                    zIndex: 1000,
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                <div style={{ padding: '16px', borderBottom: '1px solid #282828', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 'bold' }}>Notifications</h3>
+                                </div>
+                                
+                                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                    {recentNotifications.map(notif => (
+                                        <div key={notif.id} style={{ padding: '16px', borderBottom: '1px solid #1f1f1f', display: 'flex', gap: '12px', transition: 'background 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.background = '#1a1a1a'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                                            <div style={{ background: 'var(--yellow)', borderRadius: '50%', padding: '6px', height: 'fit-content', color: 'black' }}>
+                                                <Bell size={14} fill="currentColor" />
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', lineHeight: '1.4' }}>{notif.text}</p>
+                                                <span style={{ fontSize: '0.7rem', color: '#888' }}>{notif.time}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     
                     <div className="profile-container" style={{ position: 'relative' }}>
                         <div 
                             className="nav-avatar" 
-                            onMouseEnter={() => setDropdownOpen(true)}
-                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            onMouseEnter={() => { setDropdownOpen(true); setNotifOpen(false); }}
+                            onClick={() => { setDropdownOpen(!dropdownOpen); setNotifOpen(false); }}
                         >
                             {userInitials}
                         </div>
