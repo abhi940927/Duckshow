@@ -479,7 +479,7 @@ app.post('/api/mylist', async (req, res) => {
         const doc = await MyList.findOneAndUpdate(
             { userId },
             { $addToSet: { movies: movieTitle }, updatedAt: new Date() },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
         res.json({ success: true, mylist: doc.movies });
     } catch (err) {
@@ -496,7 +496,7 @@ app.delete('/api/mylist', async (req, res) => {
         const doc = await MyList.findOneAndUpdate(
             { userId },
             { $pull: { movies: movieTitle }, updatedAt: new Date() },
-            { new: true }
+            { returnDocument: 'after' }
         );
         res.json({ success: true, mylist: doc ? doc.movies : [] });
     } catch (err) {
@@ -517,7 +517,7 @@ app.post('/api/subscribe', async (req, res) => {
         const sub = await Subscription.findOneAndUpdate(
             { userId },
             { plan, subscribedAt: new Date(), nextBillingDate },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
         res.json({ success: true, subscription: sub });
     } catch (err) {
