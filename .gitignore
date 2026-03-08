@@ -1,0 +1,7 @@
+mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/duckshow
+.env
+node_modules/
+client/node_modules/
+client/dist/
+db.json
+*.log

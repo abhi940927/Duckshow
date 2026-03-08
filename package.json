@@ -5,14 +5,22 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "cd client && npm install && npm run build",
     "dev": "nodemon server.js"
   },
-  "keywords": ["streaming", "duckshow"],
+  "keywords": [
+    "streaming",
+    "duckshow"
+  ],
   "author": "Duckshow Team",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "^4.18.2",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.2.4",
+    "nodemailer": "^8.0.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
