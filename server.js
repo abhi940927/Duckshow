@@ -52,9 +52,8 @@ const transporter = nodemailer.createTransport({
     // Using explicit IPv4 to avoid ENETUNREACH on Railway 
     // Usually dns.setDefaultResultOrder works, but explicitly forcing family or hardcoding IP is safer.
     host: '142.251.10.108', // Hardcoded IPv4 for smtp.gmail.com
-    port: 587,              // Port 465 is usually aggressively blocked; trying 587 (STARTTLS)
-    secure: false,          // false for 587, true for 465
-    requireTLS: true,
+    port: 465,
+    secure: true, 
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -160,6 +159,10 @@ const sendOtpEmail = async (userEmail, userName, otpCode) => {
             </div>
         `
     };
+
+    // IMPORTANT FALLBACK: Log to console so Railway users can grab it from logs 
+    // if SMTP connection gets aggressively blocked by hosting.
+    console.log(`\n📧 OTP for ${userEmail} is: ${otpCode}\n`);
 
     try {
         await transporter.sendMail(mailOptions);
@@ -368,7 +371,10 @@ app.post('/api/forgot-password-request-otp', async (req, res) => {
         await user.save();
         
         if (user.email) {
-            await sendOtpEmail(user.email, user.name || 'User', otpCode);
+            const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
+            if (!emailSent) {
+                return res.status(502).json({ error: 'Failed to send OTP email due to server block. Please check the server logs for your code, or try resetting via Security Questions.' });
+            }
         } else if (user.phone) {
             console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow Password Reset OTP is: ${otpCode}\n`);
         }
