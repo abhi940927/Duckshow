@@ -284,6 +284,38 @@ h2, h3 {
     transform: translate(-50%, -50%) scale(1);
 }
 
+.card-list-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.card:hover .card-list-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card-list-btn:hover {
+    background: white;
+    color: black;
+    transform: scale(1.1) !important;
+}
+
 .card-play-btn:hover {
     background: white; /* Give play button its own hover state */
     transform: translate(-50%, -50%) scale(1.15) !important;

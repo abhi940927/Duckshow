@@ -5,33 +5,26 @@ import MovieCard from '../components/MovieCard';
 import VideoModal from '../components/VideoModal';
 
 const MyList = () => {
-    const { user } = useAuth();
-    const [movies, setMovies] = useState([]);
+    const { user, myList } = useAuth();
+    const [allMovies, setAllMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [playingMovie, setPlayingMovie] = useState(null);
 
     useEffect(() => {
-        const fetchList = async () => {
-            if (!user) return;
+        const fetchMovies = async () => {
             try {
-                // Get the user's movie title list
-                const listRes = await axios.get(`/api/mylist/${user.id}`);
-                const titles = listRes.data.mylist || [];
-
-                if (titles.length > 0) {
-                    // Fetch all movies and filter by titles
-                    const allRes = await axios.get('/api/movies');
-                    const filtered = allRes.data.movies.filter(m => titles.includes(m.title));
-                    setMovies(filtered);
-                }
+                const res = await axios.get('/api/movies');
+                setAllMovies(res.data.movies);
             } catch (err) {
-                console.error('Error fetching My List:', err);
+                console.error('Error fetching movies:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchList();
-    }, [user]);
+        fetchMovies();
+    }, []);
+
+    const displayMovies = allMovies.filter(m => myList && myList.includes(m.title));
 
     if (loading) return (
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070707' }}>
@@ -52,7 +45,7 @@ const MyList = () => {
                 <p style={{ color: '#888', fontSize: '0.9rem' }}>Everything you've saved to watch later.</p>
             </div>
 
-            {movies.length === 0 ? (
+            {displayMovies.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '100px 0', color: '#555' }}>
                     <p>Your list is empty. Start adding some movies!</p>
                 </div>
@@ -61,7 +54,7 @@ const MyList = () => {
                     display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
                     gap: '24px' 
                 }}>
-                    {movies.map(movie => (
+                    {displayMovies.map(movie => (
                         <MovieCard key={movie.id} movie={movie} onPlay={handlePlay} />
                     ))}
                 </div>
