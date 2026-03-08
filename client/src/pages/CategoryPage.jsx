@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import MovieCard from '../components/MovieCard';
+import MovieRow from '../components/MovieRow';
 import VideoModal from '../components/VideoModal';
 
 const CategoryPage = () => {
@@ -9,6 +10,16 @@ const CategoryPage = () => {
     const [loading, setLoading] = useState(true);
     const [playingMovie, setPlayingMovie] = useState(null);
     const location = useLocation();
+
+    // Group movies by genre
+    const moviesByGenre = movies.reduce((acc, movie) => {
+        if (!acc[movie.genre]) acc[movie.genre] = [];
+        acc[movie.genre].push(movie);
+        return acc;
+    }, {});
+    
+    // Convert to array and sort by number of movies descending
+    const groupedMovies = Object.entries(moviesByGenre).sort((a, b) => b[1].length - a[1].length);
 
     // Map path to category
     const getCategoryInfo = () => {
@@ -67,13 +78,14 @@ const CategoryPage = () => {
                 <div style={{ textAlign: 'center', padding: '100px 0', color: '#555' }}>
                     <p>No content found in this category yet.</p>
                 </div>
+            ) : info.genre ? (
+                <div style={{ marginTop: '-20px' }}>
+                    <MovieRow title={`ALL ${info.title.toUpperCase()}`} movies={movies} onPlay={handlePlay} />
+                </div>
             ) : (
-                <div style={{ 
-                    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-                    gap: '24px' 
-                }}>
-                    {movies.map(movie => (
-                        <MovieCard key={movie.id} movie={movie} onPlay={handlePlay} />
+                <div style={{ marginTop: '-20px' }}>
+                    {groupedMovies.map(([genre, genreMovies]) => (
+                        <MovieRow key={genre} title={`${genre.toUpperCase()} ${info.title.toUpperCase()}`} movies={genreMovies} onPlay={handlePlay} />
                     ))}
                 </div>
             )}
