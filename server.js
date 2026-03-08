@@ -4,6 +4,12 @@ const cors       = require('cors');
 const path       = require('path');
 const mongoose   = require('mongoose');
 const nodemailer = require('nodemailer');
+const dns        = require('dns');
+
+// CRITICAL FIX FOR RAILWAY IPv6 TIMEOUTS
+// Modern Node.js versions try to use IPv6 first, which causes ENETUNREACH errors 
+// when the cloud provider (like Railway free tier) doesn't support outbound IPv6.
+dns.setDefaultResultOrder('ipv4first');
 
 const User         = require('./models/User');
 const MyList       = require('./models/MyList');
