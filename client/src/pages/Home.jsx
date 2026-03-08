@@ -66,7 +66,9 @@ const Home = () => {
                 <MovieRow title="ACTION PACKED" movies={action} onPlay={handlePlay} />
             </div>
 
-            <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
+            {playingMovie && (
+                <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
+            )}
         </div>
     );
 };

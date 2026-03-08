@@ -78,7 +78,9 @@ const CategoryPage = () => {
                 </div>
             )}
 
-            <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
+            {playingMovie && (
+                <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
+            )}
         </div>
     );
 };
