@@ -219,12 +219,19 @@ app.get('/api/movies/:id', (req, res) => {
 // Register
 app.post('/api/register', async (req, res) => {
     try {
-        const { name, email, password, age } = req.body;
-        if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required.' });
+        let { name, emailOrPhone, password, age, dob } = req.body;
+        if (!name || !emailOrPhone || !password) return res.status(400).json({ error: 'Name, email/phone and password are required.' });
+        
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const email = isEmail ? emailOrPhone.toLowerCase() : null;
+        const phone = !isEmail ? emailOrPhone : null;
+
         if (age !== undefined && Number(age) < 9) return res.status(400).json({ error: 'You must be at least 9 years old.' });
 
-        const existing = await User.findOne({ email: email.toLowerCase() });
-        if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
+        const query = isEmail ? { email } : { phone };
+        const existing = await User.findOne(query);
+        if (existing) return res.status(409).json({ error: 'An account with this email/phone already exists.' });
 
         // Generate 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -232,17 +239,22 @@ app.post('/api/register', async (req, res) => {
 
         await User.create({ 
             name, 
-            email: email.toLowerCase(), 
+            email, 
+            phone,
             password, 
             age: Number(age) || null,
+            dob: dob ? new Date(dob) : null,
             otp: otpCode,
             otpExpires: otpExpires
         });
         
-        // Send OTP via email
-        sendOtpEmail(email.toLowerCase(), name, otpCode);
+        if (isEmail) {
+            sendOtpEmail(email, name, otpCode);
+        } else {
+            console.log(`\n📱 SIMULATED SMS TO ${phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
+        }
 
-        res.status(201).json({ success: true, requiresOtp: true, message: 'OTP sent to email.' });
+        res.status(201).json({ success: true, requiresOtp: true, message: isEmail ? 'OTP sent to email.' : 'OTP sent via SMS.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during registration.' });
@@ -255,11 +267,15 @@ app.post('/api/login', async (req, res) => {
         if (mongoose.connection.readyState !== 1) {
             return res.status(503).json({ error: 'Database connection is still pending or failed. Please check your MongoDB Atlas IP whitelist.' });
         }
-        const { email, password } = req.body;
-        if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
+        let { emailOrPhone, password } = req.body;
+        if (!emailOrPhone || !password) return res.status(400).json({ error: 'Email/Phone and password required.' });
 
-        const user = await User.findOne({ email: email.toLowerCase(), password });
-        if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const query = isEmail ? { email: emailOrPhone.toLowerCase(), password } : { phone: emailOrPhone, password };
+
+        const user = await User.findOne(query);
+        if (!user) return res.status(401).json({ error: 'Invalid email/phone or password.' });
 
         // Generate new 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -267,10 +283,13 @@ app.post('/api/login', async (req, res) => {
         user.otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
         await user.save();
         
-        // Send OTP via email
-        sendOtpEmail(user.email, user.name || 'User', otpCode);
+        if (user.email) {
+            sendOtpEmail(user.email, user.name || 'User', otpCode);
+        } else if (user.phone) {
+            console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow OTP is: ${otpCode}\n`);
+        }
 
-        res.json({ success: true, requiresOtp: true, message: 'OTP sent to email.' });
+        res.json({ success: true, requiresOtp: true, message: user.email ? 'OTP sent to email.' : 'OTP sent via SMS.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during login.' });
@@ -280,10 +299,14 @@ app.post('/api/login', async (req, res) => {
 // Verify OTP
 app.post('/api/verify-otp', async (req, res) => {
     try {
-        const { email, otp } = req.body;
-        if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
+        let { emailOrPhone, otp } = req.body;
+        if (!emailOrPhone || !otp) return res.status(400).json({ error: 'Email/Phone and OTP are required.' });
 
-        const user = await User.findOne({ email: email.toLowerCase() });
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+
+        const user = await User.findOne(query);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         if (!user.otp || user.otp !== otp) {
@@ -307,7 +330,7 @@ app.post('/api/verify-otp', async (req, res) => {
                 from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
                 to: process.env.EMAIL_USER,
                 subject: `🔔 Admin Alert: Verified Login by ${user.name || 'User'}`,
-                html: `<p>User ${user.email} successfully bypassed 2FA and logged into Duckshow.</p>`
+                html: `<p>User ${user.email || user.phone} successfully bypassed 2FA and logged into Duckshow.</p>`
             };
             transporter.sendMail(adminMailOptions).catch(e => console.error(e));
         }
@@ -316,6 +339,99 @@ app.post('/api/verify-otp', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during OTP verification.' });
+    }
+});
+
+// Forgot Password - Request OTP
+app.post('/api/forgot-password-request-otp', async (req, res) => {
+    try {
+        let { emailOrPhone } = req.body;
+        if (!emailOrPhone) return res.status(400).json({ error: 'Email/Phone is required.' });
+
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+
+        const user = await User.findOne(query);
+        if (!user) return res.status(404).json({ error: 'No account found with that email/phone.' });
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otp = otpCode;
+        user.otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+        await user.save();
+        
+        if (user.email) {
+            sendOtpEmail(user.email, user.name || 'User', otpCode);
+        } else if (user.phone) {
+            console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow Password Reset OTP is: ${otpCode}\n`);
+        }
+
+        res.json({ success: true, message: user.email ? 'OTP sent to email.' : 'OTP sent via SMS.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error.' });
+    }
+});
+
+// Forgot Password - Reset using OTP
+app.post('/api/reset-password-otp', async (req, res) => {
+    try {
+        let { emailOrPhone, otp, newPassword } = req.body;
+        if (!emailOrPhone || !otp || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+
+        const user = await User.findOne(query);
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        if (!user.otp || user.otp !== otp) return res.status(401).json({ error: 'Invalid OTP code.' });
+        if (new Date() > user.otpExpires) return res.status(401).json({ error: 'OTP has expired.' });
+
+        user.password = newPassword;
+        user.otp = null;
+        user.otpExpires = null;
+        await user.save();
+
+        res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error.' });
+    }
+});
+
+// Forgot Password - Reset using DOB & Name
+app.post('/api/reset-password-info', async (req, res) => {
+    try {
+        let { emailOrPhone, name, dob, newPassword } = req.body;
+        if (!emailOrPhone || !name || !dob || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+
+        emailOrPhone = emailOrPhone.trim();
+        const isEmail = emailOrPhone.includes('@');
+        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+
+        const user = await User.findOne(query);
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        // Normalize checks
+        if (user.name.toLowerCase() !== name.toLowerCase().trim()) {
+            return res.status(401).json({ error: 'Security details do not match.' });
+        }
+
+        // Match Dates (YYYY-MM-DD)
+        const userDobString = user.dob ? user.dob.toISOString().split('T')[0] : '';
+        if (userDobString !== dob) {
+            return res.status(401).json({ error: 'Security details do not match.' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error.' });
     }
 });
 
