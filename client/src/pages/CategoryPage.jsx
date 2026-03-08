@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import MovieCard from '../components/MovieCard';
+import VideoModal from '../components/VideoModal';
 
 const CategoryPage = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [playingMovie, setPlayingMovie] = useState(null);
     const location = useLocation();
 
     // Map path to category
@@ -49,7 +51,7 @@ const CategoryPage = () => {
     );
 
     const handlePlay = (movie) => {
-        alert(`Playing: ${movie.title}\n(Video player integration coming soon!)`);
+        setPlayingMovie(movie);
     };
 
     return (
@@ -75,6 +77,8 @@ const CategoryPage = () => {
                     ))}
                 </div>
             )}
+
+            <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
         </div>
     );
 };

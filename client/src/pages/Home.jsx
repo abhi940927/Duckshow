@@ -4,11 +4,13 @@ import HeroCarousel from '../components/HeroCarousel';
 import MovieRow from '../components/MovieRow';
 import Notification from '../components/Notification';
 import { useAuth } from '../context/AuthContext';
+import VideoModal from '../components/VideoModal';
 
 const Home = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showWelcome, setShowWelcome] = useState(false);
+    const [playingMovie, setPlayingMovie] = useState(null);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -43,7 +45,7 @@ const Home = () => {
     const action = movies.filter(m => m.genre === 'Action');
 
     const handlePlay = (movie) => {
-        alert(`Playing: ${movie.title}\n(Video player integration coming soon!)`);
+        setPlayingMovie(movie);
     };
 
     return (
@@ -63,6 +65,8 @@ const Home = () => {
                 <MovieRow title="MUST WATCH SERIES" movies={series} onPlay={handlePlay} />
                 <MovieRow title="ACTION PACKED" movies={action} onPlay={handlePlay} />
             </div>
+
+            <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
         </div>
     );
 };

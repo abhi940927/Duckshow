@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import MovieCard from '../components/MovieCard';
+import VideoModal from '../components/VideoModal';
 
 const MyList = () => {
     const { user } = useAuth();
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [playingMovie, setPlayingMovie] = useState(null);
 
     useEffect(() => {
         const fetchList = async () => {
@@ -38,7 +40,7 @@ const MyList = () => {
     );
 
     const handlePlay = (movie) => {
-        alert(`Playing: ${movie.title}`);
+        setPlayingMovie(movie);
     };
 
     return (
@@ -64,6 +66,8 @@ const MyList = () => {
                     ))}
                 </div>
             )}
+
+            <VideoModal movie={playingMovie} onClose={() => setPlayingMovie(null)} />
         </div>
     );
 };
