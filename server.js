@@ -644,7 +644,7 @@ if (!fs.existsSync(clientDist)) {
         '/payment':       'payment.html',
     };
     Object.entries(pages).forEach(([route, file]) => {
-        app.get(route, (req, res) => res.sendFile(path.join(__dirname, file)));
+        app.get(route, (req, res) => res.sendFile(path.join(process.cwd(), file)));
     });
 
     app.get('/', (req, res) => {
