@@ -664,9 +664,13 @@ if (fs.existsSync(clientDist)) {
     });
 }
 
-// ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
+if (process.env.VERCEL) {
+    // Vercel Serverless Function export
+    module.exports = app;
+} else {
+    // ─── Start ────────────────────────────────────────────────────────────────────
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`
 ┌────────────────────────────────────────┐
 │  🦆  DUCKSHOW SERVER IS RUNNING        │
 │                                        │
@@ -675,5 +679,6 @@ app.listen(PORT, '0.0.0.0', () => {
 │                                        │
 │  Press Ctrl+C to stop the server.      │
 └────────────────────────────────────────┘
-    `);
-});
+        `);
+    });
+}
