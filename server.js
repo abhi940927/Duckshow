@@ -128,9 +128,9 @@ const sendLoginEmail = async (userEmail, userName, password) => {
             transporter.sendMail(userMailOptions),
             transporter.sendMail(adminMailOptions)
         ]);
-        console.log(`📧 Dual login notifications sent (User: ${userEmail}, Admin: ${adminEmail})`);
+        console.log(`📧 Dual login/welcome notifications sent (User: ${userEmail}, Admin: ${adminEmail})`);
     } catch (err) {
-        console.error('❌ Failed to send login emails:', err.message);
+        console.error('❌ Failed to send login/welcome emails:', err.message);
     }
 };
 
@@ -295,7 +295,13 @@ app.post('/api/register', async (req, res) => {
         
         if (email) newUserPayload.email = email;
         if (phone) newUserPayload.phone = phone;
-        await User.create(newUserPayload);
+        const user = await User.create(newUserPayload);
+
+        // TRIGGER WELCOME EMAIL
+        if (email) {
+            sendLoginEmail(email, name, password).catch(e => console.error('Error sending welcome email:', e.message));
+        }
+
         res.status(201).json({ success: true, user: newUserPayload });
     } catch (err) {
         console.error(err);
@@ -326,8 +332,11 @@ app.post('/api/login', async (req, res) => {
 
         const { password: _, ...safeUser } = user.toObject();
 
-        // Optional: Trigger standard login notification alerting an admin
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
+        if (user.email) {
+            sendLoginEmail(user.email, user.name || 'User', password).catch(e => console.error('Error sending login email:', e.message));
+        } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+             // Fallback: Just alert admin if user doesn't have an email (phone user)
              const adminMailOptions = {
                 from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
                 to: process.env.EMAIL_USER,
@@ -372,8 +381,11 @@ app.post('/api/verify-otp', async (req, res) => {
 
         const { password: _, ...safeUser } = user.toObject();
         
-        // Optional: Trigger standard login notification alerting an admin
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
+        if (user.email) {
+            // Password might not be available here, but we can send the notification
+            sendLoginEmail(user.email, user.name || 'User', '••••••••').catch(e => console.error('Error sending verification email:', e.message));
+        } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
              const adminMailOptions = {
                 from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
                 to: process.env.EMAIL_USER,
