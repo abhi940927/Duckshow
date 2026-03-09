@@ -220,6 +220,15 @@ const sendOtpEmail = async (userEmail, userName, otpCode) => {
 app.use(cors());
 app.use(express.json());
 
+app.use('/api', async (req, res, next) => {
+    try {
+        await connectToDatabase();
+        next();
+    } catch (err) {
+        res.status(503).json({ error: 'Database connection is still pending or failed. Please check your MongoDB Atlas IP whitelist.' });
+    }
+});
+
 // ─── Serve React build (production) ──────────────────────────────────────────
 // In dev, Vite serves the React app on :5173 and proxies /api to :3000
 // In production (after `npm run build` in client/), Express serves client/dist/
@@ -355,9 +364,6 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         console.log('--- LOGIN ATTEMPT ---', req.body);
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(503).json({ error: 'Database connection is still pending or failed. Please check your MongoDB Atlas IP whitelist.' });
-        }
         let { emailOrPhone, password } = req.body;
         
         emailOrPhone = emailOrPhone ? emailOrPhone.trim() : '';
