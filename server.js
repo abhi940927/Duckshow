@@ -21,31 +21,30 @@ const PORT = process.env.PORT || 3000;
 // ─── MongoDB Connection ───────────────────────────────────────────────────────
 if (!process.env.MONGODB_URI) {
     console.error('❌  CRITICAL ERROR: MONGODB_URI is not defined in environment variables.');
-    console.log('   → Make sure you have added MONGODB_URI in your Railway Variables tab.');
     process.exit(1);
 }
-mongoose.connect(process.env.MONGODB_URI)
-    .then(async () => {
+
+// Global variable to cache the DB connect across Vercel serverless functions
+let cachedDb = null;
+
+async function connectToDatabase() {
+    if (cachedDb) return cachedDb;
+
+    try {
+        const db = await mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000 // Fails quickly if IP is blocked
+        });
+        cachedDb = db;
         console.log('✅  MongoDB connected');
-        // Migration: Lowercase all existing emails
-        try {
-            const users = await User.find({});
-            for (let user of users) {
-                // Ensure user.email exists to avoid "Cannot read properties of null (reading 'toLowerCase')"
-                if (user.email && user.email !== user.email.toLowerCase()) {
-                    user.email = user.email.toLowerCase();
-                    await user.save();
-                    console.log(`🔧 Migrated email for: ${user.email}`);
-                }
-            }
-        } catch (err) {
-            console.error('❌ Migration failed:', err.message);
-        }
-    })
-    .catch(err => {
+        return db;
+    } catch (err) {
         console.error('❌  MongoDB connection failed:', err.message);
-        console.log('   → Make sure MONGODB_URI is set in .env');
-    });
+        throw err;
+    }
+}
+
+// Connect immediately so the background is warm, but we'll also enforce it per-route
+connectToDatabase().catch(console.error);
 
 // ─── Email Configuration ─────────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
