@@ -77,29 +77,72 @@ const sendLoginEmail = async (userEmail, userName, password) => {
 
     const adminEmail = process.env.EMAIL_USER;
 
-    // 1. Email to USER
+    // 1. Email to USER (Premium Branding + Subscription Promo)
     const userMailOptions = {
         from: `"Duckshow Security" <${adminEmail}>`,
         to: userEmail,
-        subject: '🦆 Successful Login to Duckshow',
+        subject: '🦆 Successful Login - Welcome to Duckshow Elite',
         html: `
-            <div style="font-family: sans-serif; background: #070707; color: #f5f5f0; padding: 40px; border-radius: 8px; border: 1px solid #1e1e1e;">
-                <h2 style="color: #FFD600; margin-bottom: 20px;">Hi ${userName},</h2>
-                <p style="font-size: 1.1rem;">You have successfully logged into your <strong>Duckshow</strong> account.</p>
-                <div style="background: #141414; padding: 20px; border-left: 4px solid #FFD600; margin: 25px 0;">
-                    <strong style="color: #FFD600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Account Details:</strong><br><br>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="padding: 5px 0; color: #888; width: 100px;">Email:</td><td style="color: #fff;">${userEmail}</td></tr>
-                        <tr><td style="padding: 5px 0; color: #888;">Password:</td><td style="color: #fff;">${password}</td></tr>
-                        <tr><td style="padding: 5px 0; color: #888;">Time:</td><td style="color: #fff;">${new Date().toLocaleString()}</td></tr>
-                    </table>
-                </div>
-                <p style="color: #ffca28; font-size: 0.85rem; background: rgba(255, 202, 40, 0.1); padding: 10px; border-radius: 4px;">
-                    ⚠️ <strong>Security Tip:</strong> Never share your login credentials. If this wasn't you, please contact us immediately.
-                </p>
-                <p style="margin-top: 30px;">Happy streaming! 🍿</p>
-                <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
-                <p style="font-size: 0.75rem; color: #666; text-align: center;">© 2026 Duckshow Streaming Private Limited • 123 Pond Ave, Lake City</p>
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #070707; color: #f5f5f0; padding: 0; margin: 0;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070707; padding: 40px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #141414; border-radius: 12px; overflow: hidden; border: 1px solid #1e1e1e;">
+                                <!-- Header -->
+                                <tr style="background: linear-gradient(135deg, #141414 0%, #000 100%);">
+                                    <td align="center" style="padding: 30px;">
+                                        <h1 style="color: #FFD600; font-size: 28px; letter-spacing: 4px; margin: 0; font-weight: 900;">DUCKSHOW</h1>
+                                    </td>
+                                </tr>
+                                <!-- Main Content -->
+                                <tr>
+                                    <td style="padding: 40px 50px;">
+                                        <h2 style="color: #FFD600; font-size: 22px; margin-bottom: 10px;">Login Successful</h2>
+                                        <p style="font-size: 15px; color: #ccc; line-height: 1.6;">Hi ${userName}, you have successfully accessed your Duckshow account from a new session.</p>
+                                        
+                                        <div style="background: #0d0d0d; border-radius: 8px; padding: 20px; border: 1px solid #222; margin: 25px 0;">
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="5">
+                                                <tr><td style="color: #666; font-size: 13px;">ID:</td><td style="color: #fff; font-size: 13px;">${userEmail}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Credentials:</td><td style="color: #fff; font-size: 13px;">${password || '••••••••'}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Timestamp:</td><td style="color: #fff; font-size: 13px;">${new Date().toLocaleString()}</td></tr>
+                                            </table>
+                                        </div>
+
+                                        <!-- PROMOTION SECTION -->
+                                        <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #222;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                                <div style="background: #FFD600; color: #000; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;">Limited Offer</div>
+                                                <h3 style="color: #fff; font-size: 18px; margin: 0 0 0 10px;">Upgrade to Premium Facilities</h3>
+                                            </div>
+                                            <p style="color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                                                Unlock the full cinematic potential of Duckshow. Upgrade today to experience:
+                                            </p>
+                                            <ul style="color: #ccc; font-size: 14px; padding-left: 20px; line-height: 2;">
+                                                <li>✨ <strong>4K Ultra HD Streaming</strong> for every title.</li>
+                                                <li>🍿 <strong>Ad-Free Experience</strong> - No interruptions, ever.</li>
+                                                <li>⬇️ <strong>Offline Downloads</strong> for your mobile devices.</li>
+                                                <li>🎧 <strong>Spatial Audio Support</strong> for immersive sound.</li>
+                                            </ul>
+                                            <div align="center" style="margin-top: 35px;">
+                                                <a href="http://localhost:3000/payment" style="background-color: #FFD600; color: #000; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">GET PREMIUM NOW</a>
+                                            </div>
+                                        </div>
+
+                                        <p style="color: #ffca28; font-size: 12px; margin-top: 40px; text-align: center; opacity: 0.8;">
+                                            🛡️ If this login wasn't you, please secure your account immediately.
+                                        </p>
+                                    </td>
+                                </tr>
+                                <!-- Footer -->
+                                <tr>
+                                    <td align="center" style="padding: 25px; background-color: #0d0d0d; border-top: 1px solid #1e1e1e;">
+                                        <p style="color: #555; font-size: 11px; margin: 0;">© 2026 Duckshow Streaming Private Limited • Lake City</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
             </div>
         `
     };
