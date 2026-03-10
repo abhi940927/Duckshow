@@ -5,9 +5,10 @@ import axios from 'axios';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
-        emailOrPhone: '',
+        email: '',
         password: '',
         dob: '',
         name: '',
@@ -38,7 +39,7 @@ const Login = () => {
         try {
             if (isLogin) {
                 const loginRes = await axios.post('/api/login', {
-                    emailOrPhone: formData.emailOrPhone,
+                    email: formData.email,
                     password: formData.password
                 });
                 if (loginRes.data.success) {
@@ -61,7 +62,7 @@ const Login = () => {
 
                 const res = await axios.post('/api/register', {
                     name: formData.firstName,
-                    emailOrPhone: formData.emailOrPhone,
+                    email: formData.email,
                     password: formData.password,
                     age,
                     dob: formData.dob
@@ -78,7 +79,7 @@ const Login = () => {
                 setError('Account already exists. Please Sign In.');
                 setIsLogin(true);
             } else if (err.response?.status === 401) {
-                setError('Incorrect email/phone or password.');
+                setError('Incorrect email or password.');
             } else {
                 setError(err.response?.data?.error || 'Authentication failed.');
             }
@@ -94,7 +95,7 @@ const Login = () => {
 
         try {
             const res = await axios.post('/api/verify-otp', {
-                emailOrPhone: formData.emailOrPhone,
+                email: formData.email,
                 otp: otpCode
             });
 
@@ -112,13 +113,13 @@ const Login = () => {
 
     // ----- Forgot Password Handlers -----
     const requestForgotOtp = async () => {
-        if (!formData.emailOrPhone) return setError('Please enter your Email or Phone above first.');
+        if (!formData.email) return setError('Please enter your Email above first.');
         setLoading(true); setError('');
         try {
-            await axios.post('/api/forgot-password-request-otp', { emailOrPhone: formData.emailOrPhone });
+            await axios.post('/api/forgot-password-request-otp', { email: formData.email });
             setForgotStep(1); // Move to OTP verify step
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to request OTP. Make sure your email/phone is registered.');
+            setError(err.response?.data?.error || 'Failed to request OTP. Make sure your email is registered.');
         } finally {
             setLoading(false);
         }
@@ -129,7 +130,7 @@ const Login = () => {
         setLoading(true); setError('');
         try {
             const res = await axios.post('/api/reset-password-otp', {
-                emailOrPhone: formData.emailOrPhone,
+                email: formData.email,
                 otp: otpCode,
                 newPassword: formData.newPassword
             });
@@ -149,7 +150,7 @@ const Login = () => {
         setLoading(true); setError('');
         try {
             const res = await axios.post('/api/reset-password-info', {
-                emailOrPhone: formData.emailOrPhone,
+                email: formData.email,
                 name: formData.name,
                 dob: formData.dob,
                 newPassword: formData.newPassword
@@ -171,13 +172,18 @@ const Login = () => {
             return (
                 <form onSubmit={handleForgotResetOtp}>
                     <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '16px' }}>
-                        OTP sent to {formData.emailOrPhone}. Enter it below with your new password.
+                        OTP sent to {formData.email}. Enter it below with your new password.
                     </p>
                     <input type="text" name="otpCode" placeholder="6-digit OTP" required value={otpCode}
                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))} maxLength="6"
                            style={inputStyle} />
-                    <input type="password" name="newPassword" placeholder="New Password" required value={formData.newPassword}
-                           onChange={handleChange} style={inputStyle} />
+                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                        <input type={showPassword ? "text" : "password"} name="newPassword" placeholder="New Password" required value={formData.newPassword}
+                               onChange={handleChange} style={{...inputStyle, marginBottom: 0, paddingRight: '46px'}} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                            {showPassword ? 'Hide' : 'Show'}
+                        </button>
+                    </div>
                     
                     <button type="submit" className="login-btn" disabled={loading} style={btnStyle}>
                         {loading ? 'RESETTING...' : 'RESET PASSWORD'}
@@ -194,7 +200,7 @@ const Login = () => {
             return (
                 <form onSubmit={handleForgotResetInfo}>
                     <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '16px', textAlign: 'center' }}>
-                        Account Recovery for <strong style={{color:'white'}}>{formData.emailOrPhone}</strong>.<br/>
+                        Account Recovery for <strong style={{color:'white'}}>{formData.email}</strong>.<br/>
                         Provide the exact Name and Date of Birth on your account.
                     </p>
                     <input type="text" name="name" placeholder="Exact Account Name" required value={formData.name}
@@ -204,8 +210,13 @@ const Login = () => {
                         <input type="date" name="dob" required value={formData.dob}
                                onChange={handleChange} style={inputStyle} />
                     </div>
-                    <input type="password" name="newPassword" placeholder="New Password" required value={formData.newPassword}
-                           onChange={handleChange} style={inputStyle} />
+                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                        <input type={showPassword ? "text" : "password"} name="newPassword" placeholder="New Password" required value={formData.newPassword}
+                               onChange={handleChange} style={{...inputStyle, marginBottom: 0, paddingRight: '46px'}} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                            {showPassword ? 'Hide' : 'Show'}
+                        </button>
+                    </div>
                     
                     <button type="submit" className="login-btn" disabled={loading} style={btnStyle}>
                         {loading ? 'RESETTING...' : 'RESET PASSWORD'}
@@ -230,7 +241,7 @@ const Login = () => {
                         <>
                             <p style={{ fontSize: '1rem', color: 'white', marginTop: '16px', fontWeight: 'bold' }}>Security Verification</p>
                             <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '8px' }}>
-                                We've sent a 6-digit code to <strong style={{color: 'var(--yellow)'}}>{formData.emailOrPhone}</strong>
+                                We've sent a 6-digit code to <strong style={{color: 'var(--yellow)'}}>{formData.email}</strong>
                             </p>
                         </>
                     ) : forgotStep > 0 ? (
@@ -263,8 +274,13 @@ const Login = () => {
                         {!isLogin && (
                             <input type="text" name="firstName" placeholder="First Name" required value={formData.firstName} onChange={handleChange} onInput={handleChange} style={inputStyle} />
                         )}
-                        <input type="text" name="emailOrPhone" placeholder="Email or Phone Number" required value={formData.emailOrPhone} onChange={handleChange} onInput={handleChange} style={inputStyle} />
-                        <input type="password" name="password" placeholder="Password" required value={formData.password} onChange={handleChange} onInput={handleChange} style={inputStyle} />
+                        <input type="email" name="email" placeholder="Email Address" required value={formData.email} onChange={handleChange} onInput={handleChange} style={inputStyle} />
+                        <div style={{ position: 'relative', marginBottom: '16px' }}>
+                            <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" required value={formData.password} onChange={handleChange} onInput={handleChange} style={{...inputStyle, marginBottom: 0, paddingRight: '46px'}} />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                {showPassword ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
                         
                         {!isLogin && (
                             <div style={{ marginBottom: '24px' }}>
@@ -283,7 +299,7 @@ const Login = () => {
                                     Forgot Password?
                                 </button>
                                 <span style={{ color: '#888', fontSize: '0.7rem', display: 'block', marginTop: '4px' }}>
-                                    (Enter Email/Phone above first)
+                                    (Enter Email above first)
                                 </span>
                             </div>
                         )}
