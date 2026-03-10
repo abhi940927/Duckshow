@@ -1,20 +1,32 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm install --prefix client && npm run build --prefix client",
-  "outputDirectory": "client/dist",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "/server.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "client/dist/**"
+        ]
+      }
     }
   ],
-  "functions": {
-    "server.js": {
-      "maxDuration": 30
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/posters/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
     }
-  }
+  ]
 }
