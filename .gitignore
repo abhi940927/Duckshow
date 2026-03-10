@@ -1,6 +1,6 @@
 .env
 node_modules/
 client/node_modules/
-client/dist/
+# client/dist/ is intentionally NOT ignored so Vercel can serve the pre-built React app
 db.json
 *.log
