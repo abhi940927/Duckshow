@@ -1,14 +1,20 @@
 {
   "version": 2,
+  "buildCommand": "npm install && npm install --prefix client && npm run build --prefix client",
+  "outputDirectory": "client/dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/:path*",
       "destination": "/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "functions": {
     "server.js": {
-      "includeFiles": "*.html"
+      "maxDuration": 30
     }
   }
 }
