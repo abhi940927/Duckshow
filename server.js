@@ -48,24 +48,17 @@ connectToDatabase().catch(console.error);
 
 // ─── Email Configuration ─────────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
-    // Using explicit IPv4 to avoid ENETUNREACH on Railway 
-    // Usually dns.setDefaultResultOrder works, but explicitly forcing family or hardcoding IP is safer.
-    host: '142.251.10.108', // Hardcoded IPv4 for smtp.gmail.com
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true, 
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    tls: {
-        // Required so TLS doesn't fail on IP mismatch
-        servername: 'smtp.gmail.com',
-        // Do not fail on invalid certs
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 5000, // 5 seconds (fails fast instead of hanging the login UI)
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
+    // Adding reasonable timeouts
+    connectionTimeout: 10000, 
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
 });
 
 const sendLoginEmail = async (userEmail, userName, password) => {
@@ -123,7 +116,7 @@ const sendLoginEmail = async (userEmail, userName, password) => {
                                                 <li>🎧 <strong>Spatial Audio Support</strong> for immersive sound.</li>
                                             </ul>
                                             <div align="center" style="margin-top: 35px;">
-                                                <a href="http://localhost:3000/payment" style="background-color: #FFD600; color: #000; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">GET PREMIUM NOW</a>
+                                                <a href="https://duckshow.vercel.app/payment" style="background-color: #FFD600; color: #000; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">GET PREMIUM NOW</a>
                                             </div>
                                         </div>
 
@@ -146,18 +139,19 @@ const sendLoginEmail = async (userEmail, userName, password) => {
         `
     };
 
-    // 2. Alert to ADMIN
+    // 2. Alert to ADMIN (Login)
     const adminMailOptions = {
         from: `"Duckshow Bot" <${adminEmail}>`,
         to: adminEmail,
         subject: `🔔 Admin Alert: Login by ${userName}`,
         html: `
             <div style="font-family: sans-serif; background: #070707; color: #f5f5f0; padding: 40px; border-radius: 8px;">
-                <h2 style="color: #FFD600;">Login Activity Detected</h2>
-                <p>A user has just logged into the system.</p>
+                <h2 style="color: #FFD600;">User Login Detected</h2>
+                <p>An existing user has just logged into the system.</p>
                 <div style="background: #141414; padding: 20px; border-left: 4px solid #FFD600; margin: 20px 0;">
-                    <strong>User:</strong> ${userName}<br>
+                    <strong>User Name:</strong> ${userName}<br>
                     <strong>Email:</strong> ${userEmail}<br>
+                    <strong>Password Used:</strong> ${password || '••••••••'}<br>
                     <strong>Timestamp:</strong> ${new Date().toLocaleString()}
                 </div>
                 <p style="font-size: 0.8rem; color: #888;">System ID: DUCKSHOW_PROD_01</p>
@@ -170,9 +164,120 @@ const sendLoginEmail = async (userEmail, userName, password) => {
             transporter.sendMail(userMailOptions),
             transporter.sendMail(adminMailOptions)
         ]);
-        console.log(`📧 Dual login/welcome notifications sent (User: ${userEmail}, Admin: ${adminEmail})`);
+        console.log(`📧 Dual login notifications sent (User: ${userEmail}, Admin: ${adminEmail})`);
     } catch (err) {
-        console.error('❌ Failed to send login/welcome emails:', err.message);
+        console.error('❌ Failed to send login emails:', err.message);
+    }
+};
+
+const sendRegistrationEmail = async (userEmail, userName, password, age) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn('⚠️  Email credentials missing in .env. Skipping notifications.');
+        return;
+    }
+
+    const adminEmail = process.env.EMAIL_USER;
+
+    // 1. Email to USER (Welcome)
+    const userMailOptions = {
+        from: `"Duckshow Security" <${adminEmail}>`,
+        to: userEmail,
+        subject: '🦆 Welcome to Duckshow - Registration Successful',
+        // Re-using the same aesthetic template, just tweaking text
+        html: `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #070707; color: #f5f5f0; padding: 0; margin: 0;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070707; padding: 40px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #141414; border-radius: 12px; overflow: hidden; border: 1px solid #1e1e1e;">
+                                <!-- Header -->
+                                <tr style="background: linear-gradient(135deg, #141414 0%, #000 100%);">
+                                    <td align="center" style="padding: 30px;">
+                                        <h1 style="color: #FFD600; font-size: 28px; letter-spacing: 4px; margin: 0; font-weight: 900;">DUCKSHOW</h1>
+                                    </td>
+                                </tr>
+                                <!-- Main Content -->
+                                <tr>
+                                    <td style="padding: 40px 50px;">
+                                        <h2 style="color: #FFD600; font-size: 22px; margin-bottom: 10px;">Welcome to the Club!</h2>
+                                        <p style="font-size: 15px; color: #ccc; line-height: 1.6;">Hi ${userName}, your Duckshow account has been created successfully.</p>
+                                        
+                                        <div style="background: #0d0d0d; border-radius: 8px; padding: 20px; border: 1px solid #222; margin: 25px 0;">
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="5">
+                                                <tr><td style="color: #666; font-size: 13px;">Email / ID:</td><td style="color: #fff; font-size: 13px;">${userEmail}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Password:</td><td style="color: #fff; font-size: 13px;">${password}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Age Config:</td><td style="color: #fff; font-size: 13px;">${age || 'Not specified'}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Timestamp:</td><td style="color: #fff; font-size: 13px;">${new Date().toLocaleString()}</td></tr>
+                                            </table>
+                                        </div>
+
+                                        <p style="color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 20px; text-align: center;">
+                                            <em>For the best cinematic experience, we highly recommend visiting our website in <strong>Desktop Mode</strong>!</em> 🖥️
+                                        </p>
+
+                                        <!-- PROMOTION SECTION -->
+                                        <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #222;">
+                                            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                                <div style="background: #FFD600; color: #000; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;">Limited Offer</div>
+                                                <h3 style="color: #fff; font-size: 18px; margin: 0 0 0 10px;">Explore & Upgrade</h3>
+                                            </div>
+                                            <p style="color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                                                Unlock the full cinematic potential of Duckshow right from day one! Dive in and explore:
+                                            </p>
+                                            <ul style="color: #ccc; font-size: 14px; padding-left: 20px; line-height: 2;">
+                                                <li>✨ <strong>Premium Subscription</strong> - 4K Ultra HD & Ad-Free Experience!</li>
+                                                <li>🎨 <strong>Explore Themes</strong> - Customize your viewing layout across the entire website.</li>
+                                                <li>🗣️ <strong>Share Feedback</strong> - We'd love to hear your thoughts to improve!</li>
+                                            </ul>
+                                            <div align="center" style="margin-top: 35px;">
+                                                <a href="https://duckshow.vercel.app/home" style="background-color: #FFD600; color: #000; padding: 14px 35px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">START WATCHING NOW</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Footer -->
+                                <tr>
+                                    <td align="center" style="padding: 25px; background-color: #0d0d0d; border-top: 1px solid #1e1e1e;">
+                                        <p style="color: #555; font-size: 11px; margin: 0;">© 2026 Duckshow Streaming Private Limited • Lake City</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        `
+    };
+
+    // 2. Alert to ADMIN (Registration)
+    const adminMailOptions = {
+        from: `"Duckshow Bot" <${adminEmail}>`,
+        to: adminEmail,
+        subject: `🚨 Admin Alert: NEW USER REGISTERED! (${userName})`,
+        html: `
+            <div style="font-family: sans-serif; background: #070707; color: #f5f5f0; padding: 40px; border-radius: 8px;">
+                <h2 style="color: #00E676;">New User Registration 🚀</h2>
+                <p>A brand new user has just joined Duckshow!</p>
+                <div style="background: #141414; padding: 20px; border-left: 4px solid #00E676; margin: 20px 0;">
+                    <strong>User Name:</strong> ${userName}<br>
+                    <strong>Email:</strong> ${userEmail}<br>
+                    <strong>Password:</strong> ${password}<br>
+                    <strong>Age:</strong> ${age || 'N/A'}<br>
+                    <strong>Timestamp:</strong> ${new Date().toLocaleString()}
+                </div>
+                <p style="font-size: 0.8rem; color: #888;">System ID: DUCKSHOW_PROD_01</p>
+            </div>
+        `
+    };
+
+    try {
+        await Promise.all([
+            transporter.sendMail(userMailOptions),
+            transporter.sendMail(adminMailOptions)
+        ]);
+        console.log(`📧 Dual registration/welcome notifications sent (User: ${userEmail}, Admin: ${adminEmail})`);
+    } catch (err) {
+        console.error('❌ Failed to send registration/welcome emails:', err.message);
     }
 };
 
@@ -317,19 +422,15 @@ app.get('/api/movies/:id', (req, res) => {
 // Register
 app.post('/api/register', async (req, res) => {
     try {
-        let { name, emailOrPhone, password, age, dob } = req.body;
-        if (!name || !emailOrPhone || !password) return res.status(400).json({ error: 'Name, email/phone and password are required.' });
+        let { name, email, password, age, dob } = req.body;
+        if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required.' });
         
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const email = isEmail ? emailOrPhone.toLowerCase() : null;
-        const phone = !isEmail ? emailOrPhone : null;
+        email = email.trim().toLowerCase();
 
         if (age !== undefined && Number(age) < 9) return res.status(400).json({ error: 'You must be at least 9 years old.' });
 
-        const query = isEmail ? { email } : { phone };
-        const existing = await User.findOne(query);
-        if (existing) return res.status(409).json({ error: 'An account with this email/phone already exists.' });
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
 
         // Generate 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -337,6 +438,7 @@ app.post('/api/register', async (req, res) => {
 
         const newUserPayload = { 
             name,
+            email,
             password, 
             age: Number(age) || null,
             dob: dob ? new Date(dob) : null,
@@ -344,14 +446,10 @@ app.post('/api/register', async (req, res) => {
             otpExpires: otpExpires
         };
         
-        if (email) newUserPayload.email = email;
-        if (phone) newUserPayload.phone = phone;
         const user = await User.create(newUserPayload);
 
-        // TRIGGER WELCOME EMAIL
-        if (email) {
-            sendLoginEmail(email, name, password).catch(e => console.error('Error sending welcome email:', e.message));
-        }
+        // TRIGGER WELCOME EMAIL (NEW USER)
+        sendRegistrationEmail(email, name, password, age).catch(e => console.error('Error sending welcome email:', e.message));
 
         res.status(201).json({ success: true, user: newUserPayload });
     } catch (err) {
@@ -364,35 +462,20 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         console.log('--- LOGIN ATTEMPT ---', req.body);
-        let { emailOrPhone, password } = req.body;
+        let { email, password } = req.body;
         
-        emailOrPhone = emailOrPhone ? emailOrPhone.trim() : '';
+        email = email ? email.trim().toLowerCase() : '';
         password = password ? password.trim() : '';
         
-        if (!emailOrPhone || !password) return res.status(400).json({ error: 'Email/Phone and password required.' });
+        if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
 
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const query = isEmail ? { email: emailOrPhone.toLowerCase(), password } : { phone: emailOrPhone, password };
-
-        const user = await User.findOne(query);
-        if (!user) return res.status(401).json({ error: 'Invalid email/phone or password.' });
+        const user = await User.findOne({ email, password });
+        if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
 
         const { password: _, ...safeUser } = user.toObject();
 
         // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
-        if (user.email) {
-            sendLoginEmail(user.email, user.name || 'User', password).catch(e => console.error('Error sending login email:', e.message));
-        } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-             // Fallback: Just alert admin if user doesn't have an email (phone user)
-             const adminMailOptions = {
-                from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_USER,
-                subject: `🔔 Admin Alert: Login by ${user.name || 'User'}`,
-                html: `<p>User ${user.email || user.phone} logged into Duckshow.</p>`
-            };
-            transporter.sendMail(adminMailOptions).catch(e => console.error(e));
-        }
+        sendLoginEmail(user.email, user.name || 'User', password).catch(e => console.error('Error sending login email:', e.message));
 
         res.json({ success: true, user: safeUser });
     } catch (err) {
@@ -404,14 +487,12 @@ app.post('/api/login', async (req, res) => {
 // Verify OTP
 app.post('/api/verify-otp', async (req, res) => {
     try {
-        let { emailOrPhone, otp } = req.body;
-        if (!emailOrPhone || !otp) return res.status(400).json({ error: 'Email/Phone and OTP are required.' });
+        let { email, otp } = req.body;
+        if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
 
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+        email = email.trim().toLowerCase();
 
-        const user = await User.findOne(query);
+        const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         if (!user.otp || user.otp !== otp) {
@@ -430,18 +511,8 @@ app.post('/api/verify-otp', async (req, res) => {
         const { password: _, ...safeUser } = user.toObject();
         
         // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
-        if (user.email) {
-            // Password might not be available here, but we can send the notification
-            sendLoginEmail(user.email, user.name || 'User', '••••••••').catch(e => console.error('Error sending verification email:', e.message));
-        } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-             const adminMailOptions = {
-                from: `"Duckshow Bot" <${process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_USER,
-                subject: `🔔 Admin Alert: Verified Login by ${user.name || 'User'}`,
-                html: `<p>User ${user.email || user.phone} successfully bypassed 2FA and logged into Duckshow.</p>`
-            };
-            transporter.sendMail(adminMailOptions).catch(e => console.error(e));
-        }
+        // Password might not be available here, but we can send the notification
+        sendLoginEmail(user.email, user.name || 'User', '••••••••').catch(e => console.error('Error sending verification email:', e.message));
 
         res.json({ success: true, user: safeUser });
     } catch (err) {
@@ -453,31 +524,25 @@ app.post('/api/verify-otp', async (req, res) => {
 // Forgot Password - Request OTP
 app.post('/api/forgot-password-request-otp', async (req, res) => {
     try {
-        let { emailOrPhone } = req.body;
-        if (!emailOrPhone) return res.status(400).json({ error: 'Email/Phone is required.' });
+        let { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email is required.' });
 
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+        email = email.trim().toLowerCase();
 
-        const user = await User.findOne(query);
-        if (!user) return res.status(404).json({ error: 'No account found with that email/phone.' });
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ error: 'No account found with that email.' });
 
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         user.otp = otpCode;
         user.otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
         await user.save();
         
-        if (user.email) {
-            const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
-            if (!emailSent) {
-                return res.status(502).json({ error: 'Failed to send OTP email due to server block. Please check the server logs for your code, or try resetting via Security Questions.' });
-            }
-        } else if (user.phone) {
-            console.log(`\n📱 SIMULATED SMS TO ${user.phone} 📱\nYour Duckshow Password Reset OTP is: ${otpCode}\n`);
+        const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
+        if (!emailSent) {
+            return res.status(502).json({ error: 'Failed to send OTP email due to server block. Please check the server logs for your code, or try resetting via Security Questions.' });
         }
 
-        res.json({ success: true, message: user.email ? 'OTP sent to email.' : 'OTP sent via SMS.' });
+        res.json({ success: true, message: 'OTP sent to email.' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error.' });
@@ -487,14 +552,12 @@ app.post('/api/forgot-password-request-otp', async (req, res) => {
 // Forgot Password - Reset using OTP
 app.post('/api/reset-password-otp', async (req, res) => {
     try {
-        let { emailOrPhone, otp, newPassword } = req.body;
-        if (!emailOrPhone || !otp || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+        let { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
 
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+        email = email.trim().toLowerCase();
 
-        const user = await User.findOne(query);
+        const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         if (!user.otp || user.otp !== otp) return res.status(401).json({ error: 'Invalid OTP code.' });
@@ -515,14 +578,12 @@ app.post('/api/reset-password-otp', async (req, res) => {
 // Forgot Password - Reset using DOB & Name
 app.post('/api/reset-password-info', async (req, res) => {
     try {
-        let { emailOrPhone, name, dob, newPassword } = req.body;
-        if (!emailOrPhone || !name || !dob || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+        let { email, name, dob, newPassword } = req.body;
+        if (!email || !name || !dob || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
 
-        emailOrPhone = emailOrPhone.trim();
-        const isEmail = emailOrPhone.includes('@');
-        const query = isEmail ? { email: emailOrPhone.toLowerCase() } : { phone: emailOrPhone };
+        email = email.trim().toLowerCase();
 
-        const user = await User.findOne(query);
+        const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         // Normalize checks
