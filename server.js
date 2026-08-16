@@ -431,38 +431,60 @@ app.get('/api/movies/:id', (req, res) => {
 app.post('/api/register', async (req, res) => {
     try {
         let { name, email, password, age, dob } = req.body;
-        if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required.' });
-        
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                error: "Name, email and password are required."
+            });
+        }
+
         email = email.trim().toLowerCase();
 
-        if (age !== undefined && Number(age) < 9) return res.status(400).json({ error: 'You must be at least 9 years old.' });
+        if (age !== undefined && Number(age) < 9) {
+            return res.status(400).json({
+                error: "You must be at least 9 years old."
+            });
+        }
 
         const existing = await User.findOne({ email });
-        if (existing) return res.status(409).json({ error: 'An account with this email already exists.' });
 
-        // Generate 6-digit OTP
+        if (existing) {
+            return res.status(409).json({
+                error: "An account with this email already exists."
+            });
+        }
+
+        // Generate OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-        const newUserPayload = { 
+        const user = await User.create({
             name,
             email,
-            password, 
+            password,
             age: Number(age) || null,
             dob: dob ? new Date(dob) : null,
             otp: otpCode,
-            otpExpires: otpExpires
-        };
-        
-        const user = await User.create(newUserPayload);
+            otpExpires
+        });
 
-        // TRIGGER WELCOME EMAIL (NEW USER)
-        sendRegistrationEmail(email, name, password, age).catch(e => console.error('Error sending welcome email:', e.message));
+        sendRegistrationEmail(email, name, password, age)
+            .catch(err => console.error(err));
 
-        res.status(201).json({ success: true, user: newUserPayload });
+        // REMOVE PASSWORD BEFORE SENDING
+        const safeUser = user.toObject();
+        delete safeUser.password;
+
+        res.status(201).json({
+            success: true,
+            user: safeUser
+        });
+
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error during registration.' });
+        res.status(500).json({
+            error: "Server error during registration."
+        });
     }
 });
 
@@ -628,12 +650,30 @@ app.delete('/api/users/:id', async (req, res) => {
 });
 
 // Get My List
+// Get My List
 app.get('/api/mylist/:userId', async (req, res) => {
     try {
-        const doc = await MyList.findOne({ userId: req.params.userId });
-        res.json({ mylist: doc ? doc.movies : [] });
+
+        const { userId } = req.params;
+
+        if (!userId || userId === "undefined") {
+            return res.status(400).json({
+                error: "Invalid user id"
+            });
+        }
+
+        const doc = await MyList.findOne({ userId });
+
+        res.json({
+            mylist: doc ? doc.movies : []
+        });
+
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch My List.' });
+        console.error(err);
+
+        res.status(500).json({
+            error: "Failed to fetch My List."
+        });
     }
 });
 

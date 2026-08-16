@@ -74,7 +74,7 @@ const Footer = () => {
                     }}>
                         <Linkedin size={16} /> Abhinav Singh
                     </a>
-                    <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                    <a href="https://portfolio-8p6q.vercel.app/#about" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
                         <Globe size={16} /> Portfolio
                     </a>
                 </div>
