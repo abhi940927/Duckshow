@@ -44,7 +44,7 @@ const Login = () => {
                 });
                 if (loginRes.data.success) {
                     localStorage.setItem('duckshow_just_logged_in', 'true');
-                    login(loginRes.data.user);
+                    login(loginRes.data.user, loginRes.data.token);
                     navigate('/home');
                 }
             } else {
@@ -70,7 +70,7 @@ const Login = () => {
 
                 if (res.data.success) {
                     localStorage.setItem('duckshow_just_logged_in', 'true');
-                    login(res.data.user);
+                    login(res.data.user, res.data.token);
                     navigate('/home');
                 }
             }
@@ -101,7 +101,7 @@ const Login = () => {
 
             if (res.data.success) {
                 localStorage.setItem('duckshow_just_logged_in', 'true');
-                login(res.data.user);
+                login(res.data.user, res.data.token);
                 navigate('/home');
             }
         } catch (err) {

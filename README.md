@@ -21,9 +21,24 @@ If you want to modify the code and see changes in real-time, follow these steps:
 ### 1. Environment Variables (`.env`)
 Ensure you have a `.env` file in the root directory with the following:
 ```env
+# Database
 MONGODB_URI=your_mongodb_connection_string
+
+# Authentication Security
+JWT_SECRET=your_super_secret_jwt_key_here
+
+# PayPal Subscription Checkout
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYPAL_MODE=sandbox
+SUBSCRIPTION_PRICE=11.99
+PAYPAL_CURRENCY=USD
+
+# Email Notifications (Optional)
 EMAIL_USER=your_gmail_address
 EMAIL_PASS=your_gmail_app_password
+
+# Server
 PORT=3000
 ```
 

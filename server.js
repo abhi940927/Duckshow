@@ -15,6 +15,10 @@ const User         = require('./models/User');
 const MyList       = require('./models/MyList');
 const Subscription = require('./models/Subscription');
 
+const { verifyToken, generateToken } = require('./middleware/auth');
+const { authLimiter, otpLimiter }    = require('./middleware/rateLimiter');
+const paypal                         = require('./services/paypal');
+
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
@@ -61,7 +65,7 @@ const transporter = nodemailer.createTransport({
     socketTimeout: 15000,
 });
 
-const sendLoginEmail = async (userEmail, userName, password) => {
+const sendLoginEmail = async (userEmail, userName) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('⚠️  Email credentials missing in .env. Skipping notifications.');
         return;
@@ -95,7 +99,7 @@ const sendLoginEmail = async (userEmail, userName, password) => {
                                         <div style="background: #0d0d0d; border-radius: 8px; padding: 20px; border: 1px solid #222; margin: 25px 0;">
                                             <table width="100%" border="0" cellspacing="0" cellpadding="5">
                                                 <tr><td style="color: #666; font-size: 13px;">ID:</td><td style="color: #fff; font-size: 13px;">${userEmail}</td></tr>
-                                                <tr><td style="color: #666; font-size: 13px;">Credentials:</td><td style="color: #fff; font-size: 13px;">${password || '••••••••'}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Security Status:</td><td style="color: #00E676; font-size: 13px;">Encrypted & Verified</td></tr>
                                                 <tr><td style="color: #666; font-size: 13px;">Timestamp:</td><td style="color: #fff; font-size: 13px;">${new Date().toLocaleString()}</td></tr>
                                             </table>
                                         </div>
@@ -151,7 +155,7 @@ const sendLoginEmail = async (userEmail, userName, password) => {
                 <div style="background: #141414; padding: 20px; border-left: 4px solid #FFD600; margin: 20px 0;">
                     <strong>User Name:</strong> ${userName}<br>
                     <strong>Email:</strong> ${userEmail}<br>
-                    <strong>Password Used:</strong> ${password || '••••••••'}<br>
+                    <strong>Security:</strong> Encrypted Credentials<br>
                     <strong>Timestamp:</strong> ${new Date().toLocaleString()}
                 </div>
                 <p style="font-size: 0.8rem; color: #888;">System ID: DUCKSHOW_PROD_01</p>
@@ -170,7 +174,7 @@ const sendLoginEmail = async (userEmail, userName, password) => {
     }
 };
 
-const sendRegistrationEmail = async (userEmail, userName, password, age) => {
+const sendRegistrationEmail = async (userEmail, userName, age) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('⚠️  Email credentials missing in .env. Skipping notifications.');
         return;
@@ -183,7 +187,6 @@ const sendRegistrationEmail = async (userEmail, userName, password, age) => {
         from: `"Duckshow Security" <${adminEmail}>`,
         to: userEmail,
         subject: '🦆 Welcome to Duckshow - Registration Successful',
-        // Re-using the same aesthetic template, just tweaking text
         html: `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #070707; color: #f5f5f0; padding: 0; margin: 0;">
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070707; padding: 40px 0;">
@@ -205,7 +208,7 @@ const sendRegistrationEmail = async (userEmail, userName, password, age) => {
                                         <div style="background: #0d0d0d; border-radius: 8px; padding: 20px; border: 1px solid #222; margin: 25px 0;">
                                             <table width="100%" border="0" cellspacing="0" cellpadding="5">
                                                 <tr><td style="color: #666; font-size: 13px;">Email / ID:</td><td style="color: #fff; font-size: 13px;">${userEmail}</td></tr>
-                                                <tr><td style="color: #666; font-size: 13px;">Password:</td><td style="color: #fff; font-size: 13px;">${password}</td></tr>
+                                                <tr><td style="color: #666; font-size: 13px;">Security Status:</td><td style="color: #00E676; font-size: 13px;">Encrypted & Protected</td></tr>
                                                 <tr><td style="color: #666; font-size: 13px;">Age Config:</td><td style="color: #fff; font-size: 13px;">${age || 'Not specified'}</td></tr>
                                                 <tr><td style="color: #666; font-size: 13px;">Timestamp:</td><td style="color: #fff; font-size: 13px;">${new Date().toLocaleString()}</td></tr>
                                             </table>
@@ -261,7 +264,7 @@ const sendRegistrationEmail = async (userEmail, userName, password, age) => {
                 <div style="background: #141414; padding: 20px; border-left: 4px solid #00E676; margin: 20px 0;">
                     <strong>User Name:</strong> ${userName}<br>
                     <strong>Email:</strong> ${userEmail}<br>
-                    <strong>Password:</strong> ${password}<br>
+                    <strong>Security:</strong> Encrypted Credentials<br>
                     <strong>Age:</strong> ${age || 'N/A'}<br>
                     <strong>Timestamp:</strong> ${new Date().toLocaleString()}
                 </div>
@@ -306,10 +309,6 @@ const sendOtpEmail = async (userEmail, userName, otpCode) => {
             </div>
         `
     };
-
-    // IMPORTANT FALLBACK: Log to console so Railway users can grab it from logs 
-    // if SMTP connection gets aggressively blocked by hosting.
-    console.log(`\n📧 OTP for ${userEmail} is: ${otpCode}\n`);
 
     try {
         await transporter.sendMail(mailOptions);
@@ -428,7 +427,7 @@ app.get('/api/movies/:id', (req, res) => {
 });
 
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', authLimiter, async (req, res) => {
     try {
         let { name, email, password, age, dob } = req.body;
 
@@ -439,6 +438,12 @@ app.post('/api/register', async (req, res) => {
         }
 
         email = email.trim().toLowerCase();
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                error: "Password must be at least 6 characters long."
+            });
+        }
 
         if (age !== undefined && Number(age) < 9) {
             return res.status(400).json({
@@ -468,16 +473,17 @@ app.post('/api/register', async (req, res) => {
             otpExpires
         });
 
-        sendRegistrationEmail(email, name, password, age)
+        sendRegistrationEmail(email, name, age)
             .catch(err => console.error(err));
 
-        // REMOVE PASSWORD BEFORE SENDING
+        const token = generateToken(user);
         const safeUser = user.toObject();
         delete safeUser.password;
 
         res.status(201).json({
             success: true,
-            user: safeUser
+            user: safeUser,
+            token
         });
 
     } catch (err) {
@@ -489,9 +495,8 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
     try {
-        console.log('--- LOGIN ATTEMPT ---', req.body);
         let { email, password } = req.body;
         
         email = email ? email.trim().toLowerCase() : '';
@@ -499,15 +504,18 @@ app.post('/api/login', async (req, res) => {
         
         if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
 
-        const user = await User.findOne({ email, password });
+        const user = await User.findOne({ email });
         if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
 
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) return res.status(401).json({ error: 'Invalid email or password.' });
+
+        const token = generateToken(user);
         const { password: _, ...safeUser } = user.toObject();
 
-        // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
-        sendLoginEmail(user.email, user.name || 'User', password).catch(e => console.error('Error sending login email:', e.message));
+        sendLoginEmail(user.email, user.name || 'User').catch(e => console.error('Error sending login email:', e.message));
 
-        res.json({ success: true, user: safeUser });
+        res.json({ success: true, user: safeUser, token });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during login.' });
@@ -515,7 +523,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Verify OTP
-app.post('/api/verify-otp', async (req, res) => {
+app.post('/api/verify-otp', otpLimiter, async (req, res) => {
     try {
         let { email, otp } = req.body;
         if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required.' });
@@ -538,13 +546,12 @@ app.post('/api/verify-otp', async (req, res) => {
         user.otpExpires = null;
         await user.save();
 
+        const token = generateToken(user);
         const { password: _, ...safeUser } = user.toObject();
         
-        // TRIGGER LOGIN NOTIFICATION (BOTH SIDES)
-        // Password might not be available here, but we can send the notification
-        sendLoginEmail(user.email, user.name || 'User', '••••••••').catch(e => console.error('Error sending verification email:', e.message));
+        sendLoginEmail(user.email, user.name || 'User').catch(e => console.error('Error sending verification email:', e.message));
 
-        res.json({ success: true, user: safeUser });
+        res.json({ success: true, user: safeUser, token });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error during OTP verification.' });
@@ -552,7 +559,7 @@ app.post('/api/verify-otp', async (req, res) => {
 });
 
 // Forgot Password - Request OTP
-app.post('/api/forgot-password-request-otp', async (req, res) => {
+app.post('/api/forgot-password-request-otp', otpLimiter, async (req, res) => {
     try {
         let { email } = req.body;
         if (!email) return res.status(400).json({ error: 'Email is required.' });
@@ -569,7 +576,7 @@ app.post('/api/forgot-password-request-otp', async (req, res) => {
         
         const emailSent = await sendOtpEmail(user.email, user.name || 'User', otpCode);
         if (!emailSent) {
-            return res.status(502).json({ error: 'Failed to send OTP email due to server block. Please check the server logs for your code, or try resetting via Security Questions.' });
+            return res.status(502).json({ error: 'Failed to send OTP email. Please ensure email credentials are configured in .env' });
         }
 
         res.json({ success: true, message: 'OTP sent to email.' });
@@ -580,10 +587,14 @@ app.post('/api/forgot-password-request-otp', async (req, res) => {
 });
 
 // Forgot Password - Reset using OTP
-app.post('/api/reset-password-otp', async (req, res) => {
+app.post('/api/reset-password-otp', otpLimiter, async (req, res) => {
     try {
         let { email, otp, newPassword } = req.body;
         if (!email || !otp || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+        }
 
         email = email.trim().toLowerCase();
 
@@ -606,10 +617,14 @@ app.post('/api/reset-password-otp', async (req, res) => {
 });
 
 // Forgot Password - Reset using DOB & Name
-app.post('/api/reset-password-info', async (req, res) => {
+app.post('/api/reset-password-info', authLimiter, async (req, res) => {
     try {
         let { email, name, dob, newPassword } = req.body;
         if (!email || !name || !dob || !newPassword) return res.status(400).json({ error: 'All fields are required.' });
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+        }
 
         email = email.trim().toLowerCase();
 
@@ -637,9 +652,12 @@ app.post('/api/reset-password-info', async (req, res) => {
     }
 });
 
-// Delete user account
-app.delete('/api/users/:id', async (req, res) => {
+// Delete user account (Protected: user can only delete own account)
+app.delete('/api/users/:id', verifyToken, async (req, res) => {
     try {
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({ error: 'Forbidden: You can only delete your own account.' });
+        }
         await User.findByIdAndDelete(req.params.id);
         await MyList.deleteOne({ userId: req.params.id });
         await Subscription.deleteOne({ userId: req.params.id });
@@ -649,17 +667,13 @@ app.delete('/api/users/:id', async (req, res) => {
     }
 });
 
-// Get My List
-// Get My List
-app.get('/api/mylist/:userId', async (req, res) => {
+// Get My List (Protected)
+app.get('/api/mylist/:userId', verifyToken, async (req, res) => {
     try {
-
         const { userId } = req.params;
 
-        if (!userId || userId === "undefined") {
-            return res.status(400).json({
-                error: "Invalid user id"
-            });
+        if (req.user.id !== userId) {
+            return res.status(403).json({ error: 'Forbidden: Access to another user list denied.' });
         }
 
         const doc = await MyList.findOne({ userId });
@@ -670,18 +684,18 @@ app.get('/api/mylist/:userId', async (req, res) => {
 
     } catch (err) {
         console.error(err);
-
         res.status(500).json({
             error: "Failed to fetch My List."
         });
     }
 });
 
-// Add to My List
-app.post('/api/mylist', async (req, res) => {
+// Add to My List (Protected)
+app.post('/api/mylist', verifyToken, async (req, res) => {
     try {
-        const { userId, movieTitle } = req.body;
-        if (!userId || !movieTitle) return res.status(400).json({ error: 'userId and movieTitle required.' });
+        const userId = req.user.id;
+        const { movieTitle } = req.body;
+        if (!movieTitle) return res.status(400).json({ error: 'movieTitle is required.' });
 
         const doc = await MyList.findOneAndUpdate(
             { userId },
@@ -694,11 +708,12 @@ app.post('/api/mylist', async (req, res) => {
     }
 });
 
-// Remove from My List
-app.delete('/api/mylist', async (req, res) => {
+// Remove from My List (Protected)
+app.delete('/api/mylist', verifyToken, async (req, res) => {
     try {
-        const { userId, movieTitle } = req.body;
-        if (!userId || !movieTitle) return res.status(400).json({ error: 'userId and movieTitle required.' });
+        const userId = req.user.id;
+        const { movieTitle } = req.body;
+        if (!movieTitle) return res.status(400).json({ error: 'movieTitle is required.' });
 
         const doc = await MyList.findOneAndUpdate(
             { userId },
@@ -711,14 +726,14 @@ app.delete('/api/mylist', async (req, res) => {
     }
 });
 
-// Subscribe
-app.post('/api/subscribe', async (req, res) => {
+// Subscribe (Protected)
+app.post('/api/subscribe', verifyToken, async (req, res) => {
     try {
-        const { userId, plan } = req.body;
-        if (!userId || !plan) return res.status(400).json({ error: 'userId and plan required.' });
+        const userId = req.user.id;
+        const { plan = 'premium' } = req.body;
 
         const nextBilling = new Date();
-        nextBilling.setMonth(nextBilling.getMonth() + 1);
+        nextBilling.setFullYear(nextBilling.getFullYear() + 1);
         const nextBillingDate = nextBilling.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
         const sub = await Subscription.findOneAndUpdate(
@@ -732,9 +747,12 @@ app.post('/api/subscribe', async (req, res) => {
     }
 });
 
-// Get Subscription
-app.get('/api/subscription/:userId', async (req, res) => {
+// Get Subscription (Protected)
+app.get('/api/subscription/:userId', verifyToken, async (req, res) => {
     try {
+        if (req.user.id !== req.params.userId) {
+            return res.status(403).json({ error: 'Forbidden.' });
+        }
         const sub = await Subscription.findOne({ userId: req.params.userId });
         if (!sub || sub.plan === 'free') return res.json({ active: false });
         res.json({ active: true, plan: sub.plan, nextBillingDate: sub.nextBillingDate, subscribedAt: sub.subscribedAt });
@@ -743,38 +761,122 @@ app.get('/api/subscription/:userId', async (req, res) => {
     }
 });
 
-// ─── Clean URL Page Routes ────────────────────────────────────────────────────
-// Only active when React client/dist hasn't been built yet (legacy HTML mode)
-if (!fs.existsSync(clientDist)) {
-    const pages = {
-        '/home':          'index.html',
-        '/login':         'login.html',
-        '/movies':        'movies.html',
-        '/series':        'series.html',
-        '/anime':         'anime.html',
-        '/documentaries': 'documentaries.html',
-        '/new-and-hot':   'new-and-hot.html',
-        '/my-list':       'my-list.html',
-        '/settings':      'settings.html',
-        '/payment':       'payment.html',
-    };
-    Object.entries(pages).forEach(([route, file]) => {
-        app.get(route, (req, res) => res.sendFile(path.join(process.cwd(), file)));
-    });
+// ─── PayPal Payment Endpoints ──────────────────────────────────────────────────
 
-    app.get('/', (req, res) => {
-        res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Duckshow</title>
-<style>body{background:#070707;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;}.logo{color:#FFD600;font-size:2rem;letter-spacing:4px;animation:pulse 1s ease-in-out infinite;}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
-</head><body><div class="logo">🦆 DUCKSHOW</div>
-<script>if(localStorage.getItem('duckshow_auth')==='true'){window.location.replace('/home')}else{window.location.replace('/login')}</script>
-</body></html>`);
-    });
-}
+// Create PayPal Order & get redirect approval URL (Protected)
+app.post('/api/paypal/create-order', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { plan = 'premium' } = req.body;
+        const origin = req.headers.origin || `http://${req.headers.host}`;
+        const returnUrl = `${origin}/payment?status=success`;
+        const cancelUrl = `${origin}/payment?status=cancelled`;
 
-// ─── React SPA catch-all (production) ────────────────────────────────────────
+        // If PayPal credentials are not set, provide helpful response
+        if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+            return res.status(503).json({
+                error: 'PayPal credentials are not configured yet on this server. Please add PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET to the server .env file.',
+                configured: false
+            });
+        }
+
+        const order = await paypal.createOrder({
+            userId,
+            plan,
+            returnUrl,
+            cancelUrl
+        });
+
+        res.json({
+            success: true,
+            orderId: order.orderId,
+            approveUrl: order.approveUrl
+        });
+    } catch (err) {
+        console.error('PayPal create order failed:', err.message);
+        res.status(500).json({ error: err.message || 'Failed to create PayPal order.' });
+    }
+});
+
+// Capture PayPal Order & upgrade subscription upon user deduction (Protected)
+app.post('/api/paypal/capture-order', verifyToken, async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const userId = req.user.id;
+
+        if (!orderId) {
+            return res.status(400).json({ error: 'orderId is required.' });
+        }
+
+        if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+            return res.status(503).json({
+                error: 'PayPal credentials are not configured on this server.',
+                configured: false
+            });
+        }
+
+        const captureResult = await paypal.captureOrder(orderId);
+
+        if (captureResult.status === 'COMPLETED') {
+            const nextBilling = new Date();
+            nextBilling.setFullYear(nextBilling.getFullYear() + 1);
+            const nextBillingDate = nextBilling.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const sub = await Subscription.findOneAndUpdate(
+                { userId },
+                {
+                    plan: 'premium',
+                    subscribedAt: new Date(),
+                    nextBillingDate,
+                    paymentProvider: 'paypal',
+                    paypalOrderId: orderId
+                },
+                { upsert: true, returnDocument: 'after' }
+            );
+
+            return res.json({
+                success: true,
+                subscription: sub,
+                capture: captureResult
+            });
+        } else {
+            return res.status(400).json({
+                error: `PayPal payment was not completed. Status: ${captureResult.status}`
+            });
+        }
+    } catch (err) {
+        console.error('PayPal capture order failed:', err.message);
+        res.status(500).json({ error: err.message || 'Failed to capture PayPal payment.' });
+    }
+});
+
+// ─── React SPA Serving (Production) ──────────────────────────────────────────
 if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
     app.get('*', (req, res) => {
         res.sendFile(path.join(clientDist, 'index.html'));
+    });
+} else {
+    app.get('*', (req, res) => {
+        res.status(200).send(`
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><title>Duckshow</title>
+            <style>
+                body { background: #070707; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+                h1 { color: #FFD600; letter-spacing: 3px; font-size: 2.2rem; }
+                p { color: #aaa; max-width: 500px; line-height: 1.6; }
+                code { background: #1c1c1c; color: #FFD600; padding: 4px 8px; border-radius: 4px; font-size: 0.95rem; }
+            </style>
+            </head>
+            <body>
+                <h1>🦆 DUCKSHOW</h1>
+                <p>The React production build was not found in <code>client/dist</code>.</p>
+                <p>In development, run <code>cd client && npm run dev</code>.</p>
+                <p>In production, run <code>npm run build --prefix client</code> to build the app.</p>
+            </body>
+            </html>
+        `);
     });
 }
 
